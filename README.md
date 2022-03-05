@@ -1,1 +1,1 @@
-# gamethoeryconsensus
+# GameThoeryConsensus
