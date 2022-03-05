@@ -1,0 +1,6 @@
+BasicCfg:
+  GroupNumber:  "4"
+  StageBlockNumber: "120"
+  GameTheoryStop: "60"
+  RevealStop: "90"
+  InitNodesNumberinGroup: "3"
