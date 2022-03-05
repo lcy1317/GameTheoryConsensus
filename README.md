@@ -1,1 +1,1 @@
-# GameThoeryConsensus
+# GameTheoryConsensus
