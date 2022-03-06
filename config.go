@@ -9,6 +9,11 @@ var Conf *Config
 type Config struct {
 	Basic     *BasicCfg     `json:"wallet"`
 	ChainInfo *ChainInfoCfg `json:"chain_info"`
+	TcpInfo   *TcpInfoCfg   `json:"tcp_info"`
+}
+type TcpInfoCfg struct {
+	PBFTBaseAddress   string `json:"PBFTBaseAddress"`
+	PBFTBasePortStart int    `json:"PBFTBasePortStart"`
 }
 
 type ChainInfoCfg struct {
@@ -42,6 +47,10 @@ func configInitial() error {
 		ChainInfo: &ChainInfoCfg{
 			DBFile:     viper.GetString("ChainInfo.DBFile"),
 			BlockSpeed: viper.GetInt("ChainInfo.BlockSpeed"),
+		},
+		TcpInfo: &TcpInfoCfg{
+			PBFTBaseAddress:   viper.GetString("TcpInfo.PBFTBaseAddress"),
+			PBFTBasePortStart: viper.GetInt("TcpInfo.PBFTBasePortStart"),
 		},
 	}
 	return nil

@@ -1,15 +1,25 @@
 package main
 
 import (
+	"GameTheoryConsensus/ConsensusUtils"
 	"GameTheoryConsensus/StartTest"
 	"colorout"
 	"log"
+	"strconv"
 )
 
 func InitCheck() {
 	ConfigCheck()           // 测试是否能够读取配置文件。
 	BoltDBConnectionCheck() // 测试BoltDB数据库是否存在，没有则创建。
 	BoltDBViewCheck()       // 测试BoltDB是否能正确读取
+	PortListeningInit()     // TODO:根据配置文件中的群主个数，从12000端口开端口监听
+}
+func PortListeningInit() {
+	for i := 0; i < Conf.Basic.GroupNumber; i++ {
+		portNumber := Conf.TcpInfo.PBFTBasePortStart + i
+		address := Conf.TcpInfo.PBFTBaseAddress + ":" + strconv.Itoa(portNumber)
+		go ConsensusUtils.TcpListen(address)
+	}
 }
 func BoltDBViewCheck() {
 	// 测试BoltDB是否能正确读取
