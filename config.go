@@ -7,7 +7,13 @@ import (
 var Conf *Config
 
 type Config struct {
-	Basic *BasicCfg `json:"wallet"`
+	Basic     *BasicCfg     `json:"wallet"`
+	ChainInfo *ChainInfoCfg `json:"chain_info"`
+}
+
+type ChainInfoCfg struct {
+	DBFile     string `json:"DBFile"`
+	BlockSpeed int    `json:"BlockSpeed"`
 }
 
 type BasicCfg struct {
@@ -32,6 +38,10 @@ func configInitial() error {
 			GameTheoryStop:         viper.GetInt("BasicCfg.GameTheoryStop"),
 			RevealStop:             viper.GetInt("BasicCfg.RevealStop"),
 			InitNodesNumberinGroup: viper.GetInt("BasicCfg.InitNodesNumberinGroup"),
+		},
+		ChainInfo: &ChainInfoCfg{
+			DBFile:     viper.GetString("ChainInfo.DBFile"),
+			BlockSpeed: viper.GetInt("ChainInfo.BlockSpeed"),
 		},
 	}
 	return nil

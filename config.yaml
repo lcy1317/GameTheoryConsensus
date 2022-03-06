@@ -4,3 +4,6 @@ BasicCfg:
   GameTheoryStop: "60"
   RevealStop: "90"
   InitNodesNumberinGroup: "3"
+ChainInfo:
+  DBFile: "./storage/test_blockchain.db"
+  BlockSpeed: "2000" # 设定出块速度，单位ms
