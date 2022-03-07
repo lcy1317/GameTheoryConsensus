@@ -5,6 +5,7 @@ import (
 	"colorout"
 	"log"
 	"os"
+	"sync"
 )
 
 const testBucket = "test"
@@ -133,4 +134,57 @@ func BoltDBView(dbFile string, bucketName string, key []byte) (error, []byte) {
 		return err, []byte("Error")
 	}
 	return nil, val
+}
+
+var mutex sync.Mutex
+
+func BoltDBByte(mode string, dbFile string, bucketName []byte, key []byte, value []byte) (error, []byte) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if mode == "Put" {
+		db, err := bolt.Open(dbFile, 0600, nil)
+		if err != nil {
+			log.Println(colorout.Red("数据库打开出错:")+"%s", err.Error())
+			return err, []byte("")
+		}
+		defer db.Close() // 及时关闭数据库
+
+		err = db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists(bucketName)
+			if err != nil {
+				log.Fatalf(colorout.Red("创建Bucket出错:")+"%s", err.Error())
+				return err
+			}
+			if err = bucket.Put(key, value); err != nil {
+				log.Fatalf(colorout.Red("Bucket存放数据错误:")+"%s", err.Error())
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			log.Fatalf(colorout.Red("更新数据库错误")+"%s", err.Error())
+		}
+		return nil, []byte("")
+	} else {
+		db, err := bolt.Open(dbFile, 0600, nil)
+		if err != nil {
+			log.Println(colorout.Red("数据库打开出错:")+"%s", err.Error())
+			return err, []byte("Error")
+		}
+		defer db.Close() // 及时关闭数据库
+		// 测试读取刚才的数据
+		var val []byte
+		err = db.View(func(tx *bolt.Tx) error {
+			//找到柜子
+			bucket := tx.Bucket(bucketName)
+			//找东西
+			val = bucket.Get(key)
+			return nil
+		})
+		if err != nil {
+			log.Fatalf(colorout.Red("数据库读取错误:")+"%s", err.Error())
+			return err, []byte("Error")
+		}
+		return nil, val
+	}
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"colorout"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 )
@@ -36,6 +35,7 @@ var testPBFTmessage = PBFTMessage{
 }
 
 // 该程序用来作为主节点打包交易，然后发送交易
+// TODO: 当前模拟定时2s发送一个区块。缺少交易申报过程，单纯发送模拟交易。
 func SendingNewBlock(duration int64) {
 	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
 
@@ -52,7 +52,7 @@ func SendingNewBlock(duration int64) {
 			message := "测试发送第" + strconv.Itoa(blockNumber) + "区块"
 			fmt.Println(colorout.Purple(message))
 			testPBFTmessage.BlockInfo.BlockNum = blockNumber // 设置当前的blockNumber值
-			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(rand.Intn(Conf.Basic.GroupNumber)))
+			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 
 		}
 	}()
