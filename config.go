@@ -4,8 +4,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Conf *Config
-
 type Config struct {
 	Basic     *BasicCfg     `json:"wallet"`
 	ChainInfo *ChainInfoCfg `json:"chain_info"`

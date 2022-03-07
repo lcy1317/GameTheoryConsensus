@@ -29,7 +29,7 @@ func TcpListen(addr string) {
 		if err != nil {
 			log.Panic(err)
 		}
-		fmt.Println(colorout.Cyan("当前监听地址：" + addr + string(tcpMessage)))
+		fmt.Println(colorout.Cyan(addr + "接受到Tcp消息" + ":" + string(tcpMessage)))
 	}
 
 }
