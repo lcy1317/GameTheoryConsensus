@@ -29,26 +29,52 @@ var testBlockMessage = Block{
 }
 
 var testPBFTmessage = PBFTMessage{
-	NodeGroupId: 100,
-	NodeId:      10100,
-	BlockInfo:   testBlockMessage,
-	PBFTStage:   CPrePrepare,
+	MajorNode: 0,   // 定义主节点
+	NodeId:    100, // TODO:深入考虑这个字段，PBFT的消息只需要主节点参数应该就够了。
+	BlockInfo: testBlockMessage,
+	PBFTStage: CRequest, // 发送给主节点的消息
 }
 
+// 该程序用来作为主节点打包交易，然后发送交易
 func SendingNewBlock(duration int64) {
 	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
 
 	//使用time.Ticker:
-	blockNumber := 0
+	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName))
+	blockNumber := IntDeserialize(blockNumberByte)
 	go func() {
 		for t := range ticker.C {
 			blockNumber++
+			// 在BoltDB中存入我们的blockNumber
+			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName), IntSerialize(blockNumber))
+
 			fmt.Println(colorout.Cyan("每10s出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
-			message := "测试发送第" + strconv.Itoa(blockNumber) + "包"
+			message := "测试发送第" + strconv.Itoa(blockNumber) + "区块"
 			fmt.Println(colorout.Purple(message))
+			testPBFTmessage.BlockInfo.BlockNum = blockNumber // 设置当前的blockNumber值
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(rand.Intn(Conf.Basic.GroupNumber)))
+
 		}
 	}()
 
 	select {}
 }
+
+//// 该程序用来作为主节点打包交易，然后发送交易
+//func SendingNewBlock(duration int64) {
+//	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
+//
+//	//使用time.Ticker:
+//	blockNumber := 0
+//	go func() {
+//		for t := range ticker.C {
+//			blockNumber++
+//			fmt.Println(colorout.Cyan("每10s出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
+//			message := "测试发送第" + strconv.Itoa(blockNumber) + "包"
+//			fmt.Println(colorout.Purple(message))
+//			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(rand.Intn(Conf.Basic.GroupNumber)))
+//		}
+//	}()
+//
+//	select {}
+//}
