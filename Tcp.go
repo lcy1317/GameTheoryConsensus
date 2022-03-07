@@ -1,4 +1,4 @@
-package ConsensusUtils
+package main
 
 import (
 	"colorout"
@@ -29,7 +29,7 @@ func TcpListen(addr string) {
 		if err != nil {
 			log.Panic(err)
 		}
-		fmt.Println(colorout.Cyan(addr + "接受到Tcp消息" + ":" + string(tcpMessage)))
+		fmt.Println(colorout.Cyan(addr + "接受到来自" + conn.RemoteAddr().String() + "Tcp消息" + ":" + string(tcpMessage)))
 	}
 
 }

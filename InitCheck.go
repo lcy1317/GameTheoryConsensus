@@ -1,7 +1,6 @@
 package main
 
 import (
-	"GameTheoryConsensus/ConsensusUtils"
 	"GameTheoryConsensus/StartTest"
 	"colorout"
 	"log"
@@ -18,7 +17,7 @@ func PortListeningInit() {
 	for i := 0; i < Conf.Basic.GroupNumber; i++ {
 		portNumber := Conf.TcpInfo.PBFTBasePortStart + i
 		address := Conf.TcpInfo.PBFTBaseAddress + ":" + strconv.Itoa(portNumber)
-		go ConsensusUtils.TcpListen(address)
+		go TcpListen(address)
 	}
 }
 func BoltDBViewCheck() {
