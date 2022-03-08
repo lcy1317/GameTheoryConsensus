@@ -2,6 +2,7 @@
 
 ## Todo
 - 进行区块历史的数据库存储设计
+- 研究9th Commit中时候用select监听channel实现。
 - 文件名统一大小写
 - Commit之后节点的监听。
 
