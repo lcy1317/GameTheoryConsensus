@@ -16,6 +16,7 @@ type TcpInfoCfg struct {
 
 type ChainInfoCfg struct {
 	DBFile     string `json:"DBFile"`
+	NodeDBFile string `json:"NodeDBFile"`
 	BlockSpeed int    `json:"BlockSpeed"`
 }
 
@@ -44,6 +45,7 @@ func configInitial() error {
 		},
 		ChainInfo: &ChainInfoCfg{
 			DBFile:     viper.GetString("ChainInfo.DBFile"),
+			NodeDBFile: viper.GetString("ChainInfo.NodeDBFile"),
 			BlockSpeed: viper.GetInt("ChainInfo.BlockSpeed"),
 		},
 		TcpInfo: &TcpInfoCfg{

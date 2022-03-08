@@ -3,7 +3,6 @@ package main
 import (
 	"colorout"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 )
@@ -29,14 +28,16 @@ var testBlockMessage = Block{
 }
 
 var testPBFTmessage = PBFTMessage{
-	MajorNode: 0,   // 定义主节点
-	NodeId:    100, // TODO:深入考虑这个字段，PBFT的消息只需要主节点参数应该就够了。
+	MajorNode: 0, // 定义主节点
 	BlockInfo: testBlockMessage,
 	PBFTStage: CRequest, // 发送给主节点的消息
 }
 
 // 该程序用来作为主节点打包交易，然后发送交易
+// TODO: 当前模拟定时2s发送一个区块。缺少交易申报过程，单纯发送模拟交易。
 func SendingNewBlock(duration int64) {
+	//TODO: messageCheck的创建，从区块映射到PBFT结构体。
+	messageCheck = make(map[int]PBFT)
 	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
 
 	//使用time.Ticker:
@@ -51,8 +52,9 @@ func SendingNewBlock(duration int64) {
 			fmt.Println(colorout.Cyan("每10s出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
 			message := "测试发送第" + strconv.Itoa(blockNumber) + "区块"
 			fmt.Println(colorout.Purple(message))
-			testPBFTmessage.BlockInfo.BlockNum = blockNumber // 设置当前的blockNumber值
-			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(rand.Intn(Conf.Basic.GroupNumber)))
+			testPBFTmessage.BlockInfo.BlockNum = blockNumber                             // 设置当前的blockNumber值
+			messageCheck[blockNumber] = NewPBFT(testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送消息前设置好messagePool
+			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 
 		}
 	}()
