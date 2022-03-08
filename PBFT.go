@@ -17,12 +17,6 @@ const CPrePrepare = "PrePrepare"
 const CPrepare = "Prepare"
 const CCommit = "Commit"
 const CEnded = "Ended"
-const ifPrepare = "ifPrepare"
-const ifCommit = "ifCommit"
-const prePrepareNum = "prePrepareNum"
-const prepareNum = "prepareNum"
-const commitNum = "commitNum"
-const blockInformation = "blockInfo"
 
 type PBFTMessage struct {
 	MajorNode   int // 主节点

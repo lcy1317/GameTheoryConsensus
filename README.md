@@ -1,6 +1,7 @@
 # GameTheoryConsensus
 
 ## Todo
+- 确认一下当前数据库中，blocknumber的读取如果没有链会不会自己创建相应的数据bucket
 - 进行区块历史的数据库存储设计
 - 文件名统一大小写
 - Commit之后节点的监听。
