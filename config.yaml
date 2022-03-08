@@ -1,13 +1,14 @@
 BasicCfg:
   GroupNumber:  "4"
-  StageBlockNumber: "120"
-  GameTheoryStop: "60"
-  RevealStop: "90"
+  StageBlockNumber: "12"
+  GameTheoryStop: "6"
+  RevealStop: "9"
   InitNodesNumberinGroup: "3"
 ChainInfo:
-  DBFile: "./storage/test_blockchain.db"
+  DBFile: "./storage/test_blockchain2.db"
   NodeDBFile: "./storage/"
   BlockSpeed: "5000" # 设定出块速度，单位ms
 TcpInfo:
   PBFTBaseAddress: "127.0.0.1"
   PBFTBasePortStart:  "13000"
+  ClientAddr: "127.0.0.1:12999"
