@@ -1,7 +1,6 @@
 package main
 
 import (
-	bolt "bbolt"
 	"bytes"
 	"colorout"
 	"encoding/gob"
@@ -11,7 +10,6 @@ import (
 	"net"
 	"strconv"
 	"sync"
-	"time"
 )
 
 const CRequest = "Request"
@@ -29,21 +27,43 @@ const blockInformation = "blockInfo"
 type PBFTMessage struct {
 	MajorNode   int // 主节点
 	GroupNodeId int // 所属的群组id，0默认为主节点，其余为非主节点
-	NodeId      int // 第一阶段不考虑这个NodeId，这是群组中的节点编号，我们以NodeGroupId*10000+NodeId做他的编号好了
 	BlockInfo   Block
 	PBFTStage   string // 参考ConsensusUtils里面的定义，阶段是不同的。
-	lock        sync.Mutex
-	//临时消息池，消息摘要对应消息本体
-	//MessagePool map[string][]byte
-	//存放收到的prepare数量(至少需要收到并确认2f个)，根据摘要来对应
-	//PrePareConfirmCount map[string]map[string]bool
-	//存放收到的commit数量（至少需要收到并确认2f+1个），根据摘要来对应
-	//CommitConfirmCount map[string]map[string]bool
 }
 
-var mutexListen sync.Mutex
-var mutexTcp sync.RWMutex
-var CommitNumbers = 0
+type PBFT struct {
+	Message PBFTMessage // TODO:PBFT对应的Message
+	lock    sync.Mutex
+	//存放收到的prepare数量(至少需要收到并确认2f个)，根据摘要来对应
+	prePareConfirmCount map[int]int
+	//存放收到的commit数量（至少需要收到并确认2f+1个），根据摘要来对应
+	commitConfirmCount map[int]int
+	//该笔消息是否已进行Commit广播
+	isCommitBordcast map[int]bool
+	//该笔消息是否已对客户端进行Reply
+	isReply map[int]bool
+}
+
+func NewPBFT(message PBFTMessage, nodesnum int) PBFT {
+	var p PBFT
+	p.lock.Lock()
+	p.Message = message
+	p.prePareConfirmCount = make(map[int]int)
+	p.commitConfirmCount = make(map[int]int)
+	p.isCommitBordcast = make(map[int]bool)
+	p.isReply = make(map[int]bool)
+	// 初始化
+	for i := 0; i < nodesnum; i++ {
+		p.prePareConfirmCount[i] = 0
+		p.commitConfirmCount[i] = 0
+		p.isCommitBordcast[i] = false
+		p.isReply[i] = false
+	}
+	p.lock.Unlock()
+	return p
+}
+
+var messageCheck map[int]PBFT
 
 func PBFTTcpListen(addr string) {
 	// 创建一个TCP监听
@@ -67,8 +87,6 @@ func PBFTTcpListen(addr string) {
 		}
 		var tcpPBFTMessage = PBFTDeserialize(tcpMessage) // 获取反序列化的消息
 
-		tcpPBFTMessage.handleStore() // TODO: 不太应该在这全部创建，单纯为了简单。 需要修改，如果有空
-		//ifBroadCast = checkNowStage()
 		// TODO: 当前收到了多少条消息，是否满足2f+1,满足之后才能够进行下一步。
 		ifNext := false
 		switch tcpPBFTMessage.PBFTStage {
@@ -82,10 +100,6 @@ func PBFTTcpListen(addr string) {
 		case CCommit:
 			ifNext = tcpPBFTMessage.handleCommit(getGroupNodeId(addr))
 			fmt.Println(colorout.Yellow("收到Commit消息"), ifNext)
-			CommitNumbers++
-			if CommitNumbers >= 27 {
-				println("Fucking Commit", CommitNumbers)
-			}
 			// TODO: CEnded
 		}
 		fmt.Println(colorout.Cyan(addr + "接受到来自" + conn.RemoteAddr().String() + "Tcp消息，当前阶段为:" + tcpPBFTMessage.PBFTStage))
@@ -104,91 +118,9 @@ func PBFTTcpListen(addr string) {
 		}
 	}
 }
-func (p PBFTMessage) handleStore() {
-	for i := 0; i < Conf.Basic.GroupNumber; i++ {
-		dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(i) + ".db"
-		db, err := bolt.Open(dbFileName, 0600, nil)
-		if err != nil {
-			log.Println(colorout.Red("节点数据库打开出错:")+"%s", err.Error())
-		}
 
-		err = db.Update(func(tx *bolt.Tx) error {
-			bucket, err := tx.CreateBucketIfNotExists(IntSerialize(p.BlockInfo.BlockNum))
-			if err != nil {
-				log.Fatalf(colorout.Red("创建Bucket出错:")+"%s", err.Error())
-				return err
-			}
-			if err = bucket.Put([]byte(ifPrepare), IntSerialize(0)); err != nil {
-				log.Fatalf(colorout.Red("节点Bucket存放数据错误:")+"%s", err.Error())
-				return err
-			}
-			if err = bucket.Put([]byte(ifCommit), IntSerialize(0)); err != nil {
-				log.Fatalf(colorout.Red("节点Bucket存放数据错误:")+"%s", err.Error())
-				return err
-			}
-			if err = bucket.Put([]byte(prepareNum), IntSerialize(0)); err != nil {
-				log.Fatalf(colorout.Red("节点Bucket存放数据错误:")+"%s", err.Error())
-				return err
-			}
-			if err = bucket.Put([]byte(commitNum), IntSerialize(0)); err != nil {
-				log.Fatalf(colorout.Red("节点Bucket存放数据错误:")+"%s", err.Error())
-				return err
-			}
-			// 放入区块体的数据
-			if err = bucket.Put([]byte(blockInformation), p.PBFTSerialize()); err != nil {
-				log.Fatalf(colorout.Red("节点Bucket存放区块错误:")+"%s", err.Error())
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			log.Fatalf(colorout.Red("更新数据库错误")+"%s", err.Error())
-		}
-		_ = db.Close() // 及时关闭数据库
-	}
-}
+// 收到request不论如何向下传递
 func (p PBFTMessage) handleRequest(nodeID int) bool {
-
-	dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(nodeID) + ".db"
-	db, err := bolt.Open(dbFileName, 0600, nil)
-	if err != nil {
-		log.Println(colorout.Red("主节点数据库打开出错:")+"%s", err.Error())
-	}
-	defer db.Close() // 及时关闭数据库
-
-	err = db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(IntSerialize(p.BlockInfo.BlockNum))
-		if err != nil {
-			log.Fatalf(colorout.Red("创建Bucket出错:")+"%s", err.Error())
-			return err
-		}
-		// 初始化放入了一些信息就是是否确认，以及确认数等。
-		if err = bucket.Put([]byte(ifPrepare), IntSerialize(0)); err != nil {
-			log.Fatalf(colorout.Red("主节点Bucket存放数据错误:")+"%s", err.Error())
-			return err
-		}
-		if err = bucket.Put([]byte(ifCommit), IntSerialize(0)); err != nil {
-			log.Fatalf(colorout.Red("主节点Bucket存放数据错误:")+"%s", err.Error())
-			return err
-		}
-		if err = bucket.Put([]byte(prepareNum), IntSerialize(0)); err != nil {
-			log.Fatalf(colorout.Red("主节点Bucket存放数据错误:")+"%s", err.Error())
-			return err
-		}
-		if err = bucket.Put([]byte(commitNum), IntSerialize(0)); err != nil {
-			log.Fatalf(colorout.Red("主节点Bucket存放数据错误:")+"%s", err.Error())
-			return err
-		}
-		// 放入区块体的数据
-		if err = bucket.Put([]byte(blockInformation), p.PBFTSerialize()); err != nil {
-			log.Fatalf(colorout.Red("主节点Bucket存放区块错误:")+"%s", err.Error())
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatalf(colorout.Red("更新数据库错误")+"%s", err.Error())
-	}
 	return true
 }
 
@@ -196,41 +128,23 @@ func (p PBFTMessage) handleRequest(nodeID int) bool {
 func (p PBFTMessage) handlePrePrepare(nodeID int) bool {
 	return true
 }
+
+// 收到prepare消息肯定要进行加加减减的操作
 func (p PBFTMessage) handlePrepare(nodeID int) bool {
-
-	dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(nodeID) + ".db"
-
-	err, prepareNumsByte := BoltDBByte("View", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(prepareNum), []byte(""))
-
-	// 包括自己要收到2f条，我这边自己不发所以是2f-1条
-	numbersNeeded := 2*(Conf.Basic.GroupNumber/3) - 1
-
-	// Whatever 先更新消息总数
-	number := IntDeserialize(prepareNumsByte) + 1
-	err, _ = BoltDBByte("Put", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(prepareNum), IntSerialize(number))
-	if err != nil {
-		log.Fatalf(colorout.Red("更新数据库PrePrepare消息数量错误")+"%s", err.Error())
-	}
-	fmt.Println("PrePare Stage", number, numbersNeeded)
-
-	if IntDeserialize(prepareNumsByte)+1 < numbersNeeded {
-		// 数量不够，那就不能下一步传播，但是要更新数据库里的数量
+	blockNumber := p.BlockInfo.BlockNum
+	messageLock := messageCheck[blockNumber].lock
+	// 互斥锁，保障同时只有一个线程
+	messageLock.Lock()
+	defer messageLock.Unlock()
+	messageCheck[blockNumber].prePareConfirmCount[nodeID] += 1 // 增加一下prePare的数量
+	if messageCheck[blockNumber].prePareConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3)-1 {
+		// 说明消息不够
 		return false
 	} else {
-		// 如果数量达到要求
-		err, ifPrepareByte := BoltDBByte("View", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(ifPrepare), []byte(""))
-		if err != nil {
-			log.Fatalf(colorout.Red("读取数据库是否已经传递Prepare消息错误")+"%s", err.Error())
-		}
-		fmt.Println("IfPrepare:", IntDeserialize(ifPrepareByte), "blockNumber = ", p.BlockInfo.BlockNum, time.Nanosecond)
-		if IntDeserialize(ifPrepareByte) == 0 {
-			// 如果是0代表还没有开始传播commit消息，因此可以return true进入下一阶段
-			// 同时要更新成 1
-			err, _ = BoltDBByte("Put", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(ifPrepare), IntSerialize(1))
-			if err != nil {
-				log.Fatalf(colorout.Red("更新数据库是否已经传递Prepare消息错误")+"%s", err.Error())
-			}
-
+		// 如果当前还没有进行Commit广播
+		if messageCheck[blockNumber].isCommitBordcast[nodeID] == false {
+			// 首先更改确认传递的状态
+			messageCheck[blockNumber].isCommitBordcast[nodeID] = true
 			return true
 		}
 		return false
@@ -238,35 +152,25 @@ func (p PBFTMessage) handlePrepare(nodeID int) bool {
 	return false
 }
 func (p PBFTMessage) handleCommit(nodeID int) bool {
-
-	dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(nodeID) + ".db"
-
-	err, commitNumsByte := BoltDBByte("View", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(commitNum), []byte(""))
-
-	numbersNeeded := 2 * (Conf.Basic.GroupNumber / 3)
-
-	number := IntDeserialize(commitNumsByte) + 1
-	err, _ = BoltDBByte("Put", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(commitNum), IntSerialize(number))
-	if err != nil {
-		log.Fatalf(colorout.Red("更新数据库Commit消息数量错误")+"%s", err.Error())
-	}
-	fmt.Println(number, numbersNeeded)
-	if IntDeserialize(commitNumsByte)+1 < numbersNeeded {
-		// 数量不够，那就不能下一步传播，但是要更新数据库里的数量
+	dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(nodeID) + ".db" //TODO: 收到足够的Commit消息之后再存入区块数据，中途用变量维护收到的消息数。
+	blockNumber := p.BlockInfo.BlockNum
+	messageLock := messageCheck[blockNumber].lock
+	// 互斥锁，保障同时只有一个线程
+	messageLock.Lock()
+	defer messageLock.Unlock()
+	messageCheck[blockNumber].commitConfirmCount[nodeID] += 1 // 增加一下prePare的数量
+	if messageCheck[blockNumber].commitConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3) {
+		// 说明Commit消息数量不够 需要等待其他消息
 		return false
 	} else {
-		// 如果数量达到要求
-		err, ifCommitByte := BoltDBByte("View", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(ifCommit), []byte(""))
-		if err != nil {
-			log.Fatalf(colorout.Red("读取数据库是否已经传递Commit消息错误")+"%s", err.Error())
-		}
-		if IntDeserialize(ifCommitByte) == 0 {
-			// 如果是0代表还没有开始传播commit消息，因此可以return true进入下一阶段
-			// 同时要更新成 1
-			err, _ = BoltDBByte("Put", dbFileName, IntSerialize(p.BlockInfo.BlockNum), []byte(ifCommit), IntSerialize(1))
-			if err != nil {
-				log.Fatalf(colorout.Red("更新数据库是否已经传递Commit消息错误")+"%s", err.Error())
-			}
+		// 如果当前还没有进行Commit广播
+		if messageCheck[blockNumber].isReply[nodeID] == false {
+			// 首先更改确认传递的状态
+			messageCheck[blockNumber].isReply[nodeID] = true
+			// 在这里收到足够的Commit，所以要在数据库中存下数据。
+			BoltDBPutByte(dbFileName, IntSerialize(blockNumber), IntSerialize(blockNumber), p.PBFTSerialize())
+			// TODO：给指定端口发送消息，表示阶段已经完成。
+			fmt.Println(colorout.Yellow("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
 			return true
 		}
 		return false
