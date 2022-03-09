@@ -19,6 +19,26 @@ type Transaction struct {
 	PubKey    []byte  //TODO:公钥
 }
 
+func (tx *Transaction) validating() bool {
+	blockNum, stageNum, gameStop, revealStop := getBlockNumStageNumGameRevealStop()
+	//color.Redln(blockNum, stageNum, (stageNum-1)*Conf.Basic.StageBlockNumber, gameStop, revealStop)
+	if tx.Type == 0 { // 上报
+		if blockNum > (stageNum-1)*Conf.Basic.StageBlockNumber && blockNum <= gameStop {
+			return true
+		} else {
+			return false
+		}
+	}
+	if tx.Type == 1 { // 解密
+		if blockNum > gameStop && blockNum <= revealStop {
+			return true
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
 func (tx *Transaction) getFloatNumString() string {
 	return strconv.FormatFloat(tx.Number, 'f', Conf.Basic.NumberPrecision, 64)
 }

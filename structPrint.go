@@ -6,9 +6,9 @@ func (tx Transaction) printString() string {
 	str := ""
 	str = str + "TXid:" + strconv.Itoa(IntDeserialize(tx.TXid))
 	if tx.Type == 0 {
-		str = str + " Type:" + strconv.Itoa(tx.Type) + "上报"
+		str = str + " Type:" + strconv.Itoa(tx.Type) + " 上报"
 	} else {
-		str = str + " Type:" + strconv.Itoa(tx.Type) + "解密"
+		str = str + " Type:" + strconv.Itoa(tx.Type) + " 解密"
 	}
 
 	str = str + " Hash:" + string(tx.Hash)

@@ -8,8 +8,15 @@ import (
 	"strings"
 )
 
-// 从地址中获得我们的主节点编号的函数，就是获得端口模100
+// 从配置文件中获取当前区块编号，阶段编号， GameTheoryStop， RevealStop
+func getBlockNumStageNumGameRevealStop() (int, int, int, int) {
+	blockNumber, stageNumber := getBlockNumandStageNum()
+	gameTheoryStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.GameTheoryStop
+	revealStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.RevealStop
+	return blockNumber, stageNumber, gameTheoryStop, revealStop
+}
 
+// 从地址中获得我们的主节点编号的函数，就是获得端口模100
 func getBlockNumandStageNum() (int, int) {
 	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName))
 	blockNumber := IntDeserialize(blockNumberByte)
