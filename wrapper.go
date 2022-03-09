@@ -29,9 +29,10 @@ var testBlockMessage = Block{
 	Hash:          []byte("Hash"),
 	StageHash:     []byte("StageHash"),
 	BlockNum:      1,
+	StageNum:      1,
 }
 
-var testPBFTmessage = PBFTMessage{
+var testPBFTmessage = &PBFTMessage{
 	MajorNode: 0, // 定义主节点
 	BlockInfo: testBlockMessage,
 	PBFTStage: CRequest, // 发送给主节点的消息
@@ -40,12 +41,11 @@ var testPBFTmessage = PBFTMessage{
 var transactions []*Transaction
 
 func testSendTransactions() {
-	fmt.Println(colorout.Yellow("开始随机间隔发送交易信息"))
 	a := 0
 	for {
 		a++
+		time.Sleep(time.Duration(rand.Intn(600)+1000) * time.Millisecond) // 设置延时
 		fmt.Println(colorout.Yellow("开始随机间隔发送交易信息，正在发送消息编号" + strconv.Itoa(a)))
-		time.Sleep(time.Duration(rand.Intn(600)+500) * time.Millisecond) // 设置延时
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
@@ -84,7 +84,7 @@ func TcpListenWrapper() {
 		tx := new(Transaction)
 		*tx = TXDeserialize(tcpMessage)
 		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
-		fmt.Println(colorout.Cyan(addr+"接受到来自"+conn.RemoteAddr().String()+"的事务消息:"), tx)
+		fmt.Println(colorout.Cyan(addr+"接受到来自"+conn.RemoteAddr().String()+"的事务消息:"), tx.printString())
 	}
 }
 func SendingPBFTCRequest(duration int64) {
@@ -101,10 +101,10 @@ func SendingPBFTCRequest(duration int64) {
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName), IntSerialize(blockNumber))
 			fmt.Println(colorout.Cyan("每Ns出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
 			fmt.Println(colorout.Purple("当前交易池交易数：" + strconv.Itoa(len(transactions))))
-			testPBFTmessage.BlockInfo.BlockNum = blockNumber // 设置当前的blockNumber值
 			testPBFTmessage.BlockInfo.Transactions = transactions
-			fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + strconv.Itoa(blockNumber)))
-			messageCheck[blockNumber] = NewPBFT(testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
+			testPBFTmessage.BlockNumberSet(blockNumber) // 更新区块信息以及阶段信息。
+			fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + testPBFTmessage.printString()))
+			messageCheck[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 			transactions = []*Transaction{} //清空当前消息池
 		}
@@ -131,8 +131,8 @@ func SendingNewBlock(duration int64) {
 			fmt.Println(colorout.Cyan("每10s出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
 			message := "测试发送第" + strconv.Itoa(blockNumber) + "区块"
 			fmt.Println(colorout.Purple(message))
-			testPBFTmessage.BlockInfo.BlockNum = blockNumber                             // 设置当前的blockNumber值
-			messageCheck[blockNumber] = NewPBFT(testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送消息前设置好messagePool
+			testPBFTmessage.BlockInfo.BlockNum = blockNumber                              // 设置当前的blockNumber值
+			messageCheck[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送消息前设置好messagePool
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 		}
 	}()

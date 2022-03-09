@@ -13,7 +13,8 @@ type Block struct {
 	PrevBlockHash []byte
 	Hash          []byte
 	StageHash     []byte // 阶段哈希，由什么构成呢？ 例如由Miner+StageNum进行哈希。其实也可以用数字编号标识进行简化。
-	BlockNum      int    // 创世纪块至今的区块数，模120可得到对应的阶段内区块编号。
+	BlockNum      int    // 创世纪块至今的区块数，模配置文件里的信息可得到对应的阶段内区块编号。
+	StageNum      int    // 创世纪块至今的阶段编号，模配置文件里的信息可得到对应的阶段编号。
 }
 
 // 序列化区块信息
