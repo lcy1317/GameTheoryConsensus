@@ -32,7 +32,7 @@ func (p *PBFTMessage) BlockNumberSet(blockNumber int) {
 
 type PBFT struct {
 	Message PBFTMessage // TODO:PBFT对应的Message
-	lock    sync.Mutex
+	//lock    sync.Mutex
 	//存放收到的prepare数量(至少需要收到并确认2f个)，根据摘要来对应
 	prePareConfirmCount map[int]int
 	//存放收到的commit数量（至少需要收到并确认2f+1个），根据摘要来对应
@@ -45,7 +45,7 @@ type PBFT struct {
 
 func NewPBFT(message PBFTMessage, nodesnum int) PBFT {
 	var p PBFT
-	p.lock.Lock()
+	//p.lock.Lock()
 	p.Message = message
 	p.prePareConfirmCount = make(map[int]int)
 	p.commitConfirmCount = make(map[int]int)
@@ -58,11 +58,16 @@ func NewPBFT(message PBFTMessage, nodesnum int) PBFT {
 		p.isCommitBordcast[i] = false
 		p.isReply[i] = false
 	}
-	p.lock.Unlock()
+	//p.lock.Unlock()
 	return p
 }
 
-var messageCheck map[int]PBFT
+type tmpPBFT struct {
+	message map[int]PBFT
+	lock    sync.Mutex
+}
+
+var messageCheck tmpPBFT
 
 func PBFTTcpListen(addr string) {
 	// 创建一个TCP监听
@@ -131,19 +136,18 @@ func (p PBFTMessage) handlePrePrepare(nodeID int) bool {
 // 收到prepare消息肯定要进行加加减减的操作
 func (p PBFTMessage) handlePrepare(nodeID int) bool {
 	blockNumber := p.BlockInfo.BlockNum
-	messageLock := messageCheck[blockNumber].lock
 	// 互斥锁，保障同时只有一个线程
-	messageLock.Lock()
-	defer messageLock.Unlock()
-	messageCheck[blockNumber].prePareConfirmCount[nodeID] += 1 // 增加一下prePare的数量
-	if messageCheck[blockNumber].prePareConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3)-1 {
+	messageCheck.lock.Lock()
+	defer messageCheck.lock.Unlock()
+	messageCheck.message[blockNumber].prePareConfirmCount[nodeID] += 1 // 增加一下prePare的数量
+	if messageCheck.message[blockNumber].prePareConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3)-1 {
 		// 说明消息不够
 		return false
 	} else {
 		// 如果当前还没有进行Commit广播
-		if messageCheck[blockNumber].isCommitBordcast[nodeID] == false {
+		if messageCheck.message[blockNumber].isCommitBordcast[nodeID] == false {
 			// 首先更改确认传递的状态
-			messageCheck[blockNumber].isCommitBordcast[nodeID] = true
+			messageCheck.message[blockNumber].isCommitBordcast[nodeID] = true
 			return true
 		}
 		return false
@@ -153,19 +157,18 @@ func (p PBFTMessage) handlePrepare(nodeID int) bool {
 func (p PBFTMessage) handleCommit(nodeID int) bool {
 	dbFileName := Conf.ChainInfo.NodeDBFile + "MessagePoolNode" + strconv.Itoa(nodeID) + ".db" //TODO: 收到足够的Commit消息之后再存入区块数据，中途用变量维护收到的消息数。
 	blockNumber := p.BlockInfo.BlockNum
-	messageLock := messageCheck[blockNumber].lock
 	// 互斥锁，保障同时只有一个线程
-	messageLock.Lock()
-	defer messageLock.Unlock()
-	messageCheck[blockNumber].commitConfirmCount[nodeID] += 1 // 增加一下prePare的数量
-	if messageCheck[blockNumber].commitConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3) {
+	messageCheck.lock.Lock()
+	defer messageCheck.lock.Unlock()
+	messageCheck.message[blockNumber].commitConfirmCount[nodeID] += 1 // 增加一下prePare的数量
+	if messageCheck.message[blockNumber].commitConfirmCount[nodeID] < 2*(Conf.Basic.GroupNumber/3) {
 		// 说明Commit消息数量不够 需要等待其他消息
 		return false
 	} else {
 		// 如果当前还没有进行Commit广播
-		if messageCheck[blockNumber].isReply[nodeID] == false {
+		if messageCheck.message[blockNumber].isReply[nodeID] == false {
 			// 首先更改确认传递的状态
-			messageCheck[blockNumber].isReply[nodeID] = true
+			messageCheck.message[blockNumber].isReply[nodeID] = true
 			// 在这里收到足够的Commit，所以要在数据库中存下数据。
 			BoltDBPutByte(dbFileName, IntSerialize(blockNumber), IntSerialize(blockNumber), p.PBFTSerialize())
 			// TODO：给指定端口发送消息，表示阶段已经完成。
