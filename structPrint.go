@@ -4,7 +4,7 @@ import "strconv"
 
 func (tx Transaction) printString() string {
 	str := ""
-	str = str + "TXid:" + string(tx.TXid)
+	str = str + "TXid:" + strconv.Itoa(IntDeserialize(tx.TXid))
 	if tx.Type == 0 {
 		str = str + " Type:" + strconv.Itoa(tx.Type) + "上报"
 	} else {
@@ -12,7 +12,7 @@ func (tx Transaction) printString() string {
 	}
 
 	str = str + " Hash:" + string(tx.Hash)
-	str = str + " Number:" + strconv.FormatFloat(tx.Number, 'f', 10, 64)
+	str = str + " Number:" + tx.getFloatNumString()
 	str = str + " Signature:" + string(tx.Signature)
 	str = str + " PubKey:" + string(tx.PubKey)
 	return str

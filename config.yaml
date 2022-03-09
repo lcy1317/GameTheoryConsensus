@@ -4,6 +4,7 @@ BasicCfg:
   GameTheoryStop: "6"
   RevealStop: "9"
   InitNodesNumberinGroup: "3"
+  NumberPrecision: "17"
 ChainInfo:
   DBFile: "./storage/test_blockchain2.db"
   NodeDBFile: "./storage/"

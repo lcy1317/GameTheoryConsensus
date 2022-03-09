@@ -7,6 +7,8 @@
 - Commit之后节点的监听。
 
 ## 更新日志
+- 11th Commit: 更新了一下Transaction的哈希计算，新增了模拟交易的随机数，马上测试一下当前程序是否是稳定的。摆在那持续运行一下。
+- ![image-20220309171340733](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220309171340733.png)
 - 10th Commit: 稍微更改了一下消息的结构体，并且给当前几个结构体新增了打印方法，便于观测。下一步需要处理一下几个Hash。
 - ![image-20220309150744769](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220309150744769.png?versionId=CAEQHhiBgIDw45y2.xciIDMwMWVmNjdjOTE5OTQ3NzFiYzg3ODliM2I2MzEyYjAy)
 - 9th Commit: 理论上所有的交易信息应该可以发给任意的PBFT节点，然后节点发送PBFT消息得到足够的Commit之后再做出反馈，达到一定时间后打包所有交易。<font color = red>仿真中协程太多所以我有点混乱，现在的处理方式是在ClientAddr开一个监听，所有交易都会发送到这个打包节点（对应函数TcpListenWrapper），由一个全局变量`transactions`维护当前的交易池。每隔一定出块时间打包完成之后（由另一个协程函数SendingPBFTCRequest）打包所有交易发送一个PBFT消息。并同时清空当前的交易池，这也算是为了仿真的设定吧。</font>

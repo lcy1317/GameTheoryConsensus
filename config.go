@@ -27,6 +27,7 @@ type BasicCfg struct {
 	GameTheoryStop         int `json:"GameTheoryStop"`
 	RevealStop             int `json:"RevealStop"`
 	InitNodesNumberinGroup int `json:"InitNodesNumberinGroup"`
+	NumberPrecision        int `json:"NumberPrecision"`
 }
 
 func configInitial() error {
@@ -43,6 +44,7 @@ func configInitial() error {
 			GameTheoryStop:         viper.GetInt("BasicCfg.GameTheoryStop"),
 			RevealStop:             viper.GetInt("BasicCfg.RevealStop"),
 			InitNodesNumberinGroup: viper.GetInt("BasicCfg.InitNodesNumberinGroup"),
+			NumberPrecision:        viper.GetInt("BasicCfg.NumberPrecision"),
 		},
 		ChainInfo: &ChainInfoCfg{
 			DBFile:     viper.GetString("ChainInfo.DBFile"),

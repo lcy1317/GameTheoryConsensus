@@ -10,6 +10,13 @@ import (
 
 // 从地址中获得我们的主节点编号的函数，就是获得端口模100
 
+func getBlockNumandStageNum() (int, int) {
+	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName))
+	blockNumber := IntDeserialize(blockNumberByte)
+	stageNumber := (blockNumber / Conf.Basic.StageBlockNumber) + 1
+	return blockNumber, stageNumber
+}
+
 func getGroupNodeId(addr string) int {
 	slice := strings.Split(addr, ":")
 	portNumber, _ := strconv.Atoi(slice[1]) // TODO: 错误处理

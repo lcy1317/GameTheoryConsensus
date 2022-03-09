@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"strconv"
@@ -49,8 +50,8 @@ func testSendTransactions() {
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
-		testTx.Hash = []byte("Hash")
-		testTx.Number = 50.0
+		testTx.Hash = testTx.getHash()
+		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
 		testTx.Signature = []byte("Signature")
 		testTx.PubKey = []byte("PubKey")
 		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
