@@ -7,7 +7,7 @@
 - Commit之后节点的监听。
 
 ## 更新日志
-- 11th Commit: 更新了一下Transaction的哈希计算，新增了模拟交易的随机数，马上测试一下当前程序是否是稳定的。摆在那持续运行一下。
+- 11th Commit: 更新了一下Transaction的内**数字上报的哈希计算**，新增了模拟交易的随机数，马上测试一下当前程序是否是稳定的。摆在那持续运行一下。
 - ![image-20220309171340733](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220309171340733.png)
 - 10th Commit: 稍微更改了一下消息的结构体，并且给当前几个结构体新增了打印方法，便于观测。下一步需要处理一下几个Hash。
 - ![image-20220309150744769](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220309150744769.png?versionId=CAEQHhiBgIDw45y2.xciIDMwMWVmNjdjOTE5OTQ3NzFiYzg3ODliM2I2MzEyYjAy)
