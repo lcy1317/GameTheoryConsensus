@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -54,7 +53,8 @@ func (b Block) storeBlockInfo() {
 	defer storeBlockInfo.lock.Unlock()
 	if storeBlockInfo.check == false {
 		storeBlockInfo.check = true
-		fmt.Println("存储中...区块号：", strconv.Itoa(b.BlockNum), " Data:", b.printString())
+		// 存儲打印
+		//fmt.Println("存储中...区块号：", strconv.Itoa(b.BlockNum), " Data:", b.printString())
 		BoltDBPutByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForChainInfo), getNumberByte(b.BlockNum), b.BlockSerialize())
 	}
 	return

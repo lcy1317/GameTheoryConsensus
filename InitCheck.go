@@ -10,6 +10,7 @@ import (
 
 const InitBucketNameForBlockNumber = "blockNumber"
 const InitBucketNameForChainInfo = "blockInfo"
+const InitBucketNameForChainStageInfo = "stageInfo"
 
 func InitCheck() {
 	ConfigCheck()           // 测试是否能够读取配置文件。
@@ -44,6 +45,13 @@ func BoltDBBlockNumberInit() {
 			log.Fatalf(colorout.Red("创建区块链详细数据保存的Bucket出错:")+"%s", err.Error())
 			return err
 		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte(InitBucketNameForChainStageInfo))
+		if err != nil {
+			log.Fatalf(colorout.Red("创建区块链阶段数据保存的Bucket出错:")+"%s", err.Error())
+			return err
+		}
+		
 		return nil
 	})
 	if err != nil {

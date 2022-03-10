@@ -33,23 +33,72 @@ var transactions []*Transaction
 func testSendTransactions() {
 	a := 0
 	for {
-		a++
-		// TODO: 解密和上报时候信息不一样哦！
-		time.Sleep(time.Duration(rand.Intn(600)) * time.Millisecond) // 设置延时
-		fmt.Print(colorout.Yellow("开始随机间隔发送交易信息，正在发送消息编号"+strconv.Itoa(a)) + "   ")
-		testTx := new(Transaction)
-		testTx.TXid = IntSerialize(a)
-		testTx.Type = rand.Intn(2)
-		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
-		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
-		testTx.getGeneralID()
-		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-		testTx.Signature = []byte("Signature")
-		testTx.PubKey = []byte("PubKey")
-		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+		blockNum, stageNum := getBlockNumandStageNum()
+		startNum := (stageNum - 1) * Conf.Basic.StageBlockNumber
+		if blockNum == startNum { // 开始上报
+			for i := 0; i < Conf.Basic.GroupNumber; i++ {
+				for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
+					a++
+					// TODO: 解密和上报时候信息不一样哦！
+					time.Sleep(200 * time.Millisecond) // 设置延时
+					fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+					testTx := new(Transaction)
+					testTx.TXid = IntSerialize(a)
+					testTx.Type = 0
+					testTx.MyID = j
+					testTx.GroupID = i
+					testTx.getGeneralID()
+					testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+					testTx.Signature = []byte("Signature")
+					testTx.PubKey = []byte("PubKey")
+					TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+				}
+			}
+		} else {
+			if blockNum == startNum+Conf.Basic.GameTheoryStop { // 开始上报
+				for i := 0; i < Conf.Basic.GroupNumber; i++ {
+					for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
+						a++
+						// TODO: 解密和上报时候信息不一样哦！
+						time.Sleep(200 * time.Millisecond) // 设置延时
+						fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+						testTx := new(Transaction)
+						testTx.TXid = IntSerialize(a)
+						testTx.Type = 1
+						testTx.MyID = j
+						testTx.GroupID = i
+						testTx.getGeneralID()
+						testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+						testTx.Signature = []byte("Signature")
+						testTx.PubKey = []byte("PubKey")
+						TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+					}
+				}
+			}
+		}
 	}
 }
+
+//func testSendTransactions() {
+//	a := 0
+//	for {
+//		a++
+//		// TODO: 解密和上报时候信息不一样哦！
+//		time.Sleep(time.Duration(rand.Intn(600)) * time.Millisecond) // 设置延时
+//		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+//		testTx := new(Transaction)
+//		testTx.TXid = IntSerialize(a)
+//		testTx.Type = rand.Intn(2)
+//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
+//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
+//		testTx.getGeneralID()
+//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+//		testTx.Signature = []byte("Signature")
+//		testTx.PubKey = []byte("PubKey")
+//		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+//	}
+//}
 
 // 监听交易的一个函数
 func TcpListenWrapper() {
@@ -79,15 +128,16 @@ func TcpListenWrapper() {
 		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
 		txValidating := tx.validating()
 		if !txValidating {
-			fmt.Println(colorout.Red(addr+"接受到来自"+conn.RemoteAddr().String()+"的非法事务消息:"), tx.printString())
+			fmt.Println(colorout.Red(addr+"接受到非法事务消息:"), tx.printString())
 			continue
 		}
 		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
-		fmt.Println(colorout.Cyan(addr+"接受到来自"+conn.RemoteAddr().String()+"的事务消息:"), tx.printString())
+		fmt.Println(colorout.Cyan(addr+"接受到事务消息:"), tx.printString())
 	}
 }
 func SendingPBFTCRequest(duration int64) {
 	messageCheck.message = make(map[int]PBFT)
+	stagePool.ifSort = false
 	storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 	//首先读出当前的区块编号
 	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber))
@@ -98,6 +148,7 @@ func SendingPBFTCRequest(duration int64) {
 		for t := range ticker.C { // 每进入一次新建一个
 			storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 			blockNumber++
+			stageCheck(blockNumber) // 检查当前的stage是不是结束了要排序等
 			// 在BoltDB中存入我们的blockNumber
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
 			fmt.Println(colorout.Cyan("每Ns出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))

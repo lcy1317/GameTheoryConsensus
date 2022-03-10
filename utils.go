@@ -35,11 +35,11 @@ func getPrevBlockHash() []byte {
 }
 
 // 从配置文件中获取当前区块编号，阶段编号， GameTheoryStop， RevealStop
-func getBlockNumStageNumGameRevealStop() (int, int, int, int) {
-	blockNumber, stageNumber := getBlockNumandStageNum()
-	gameTheoryStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.GameTheoryStop
-	revealStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.RevealStop
-	return blockNumber, stageNumber, gameTheoryStop, revealStop
+func getStagesByBlockNum(blockNumber int) (int, int, int) { //以12 6 9 为例，当前区块25
+	stageNumber := (blockNumber / Conf.Basic.StageBlockNumber) + 1                                // 3
+	gameTheoryStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.GameTheoryStop - 1 //25
+	revealStop := (stageNumber-1)*Conf.Basic.StageBlockNumber + Conf.Basic.RevealStop - 1         //28
+	return stageNumber, gameTheoryStop, revealStop
 }
 
 // 获得区块数以及我们的阶段数

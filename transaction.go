@@ -22,10 +22,11 @@ type Transaction struct {
 }
 
 func (tx *Transaction) validating() bool {
-	blockNum, stageNum, gameStop, revealStop := getBlockNumStageNumGameRevealStop()
+	blockNum, _ := getBlockNumandStageNum()
+	stageNum, gameStop, revealStop := getStagesByBlockNum(blockNum)
 	//color.Redln(blockNum, stageNum, (stageNum-1)*Conf.Basic.StageBlockNumber, gameStop, revealStop)
 	if tx.Type == 0 { // 上报
-		if blockNum > (stageNum-1)*Conf.Basic.StageBlockNumber && blockNum <= gameStop {
+		if blockNum >= (stageNum-1)*Conf.Basic.StageBlockNumber && blockNum <= gameStop {
 			return true
 		} else {
 			return false
@@ -33,6 +34,15 @@ func (tx *Transaction) validating() bool {
 	}
 	if tx.Type == 1 { // 解密
 		if blockNum > gameStop && blockNum <= revealStop {
+			// TODO: 可能需要修改
+			// 将数字存储起来
+			var tmp nodesInfo
+			tmp.number = tx.Number
+			tmp.GeneralID = tx.GeneralID
+			tmp.GroupID = tx.GeneralID % 100
+			stagePool.lock.Lock()
+			defer stagePool.lock.Unlock()
+			stagePool.stage.gameNodes = append(stagePool.stage.gameNodes, tmp) //将解密的交易加上去
 			return true
 		} else {
 			return false
