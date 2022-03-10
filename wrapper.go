@@ -13,19 +13,8 @@ import (
 )
 
 var testBlockMessage = Block{
-	Version:   "0.0 QwQ",
-	Timestamp: time.Now().Unix(),
-	Transactions: []*Transaction{
-		{
-			TXid:      []byte("第一个交易"),
-			Type:      0,
-			Hash:      []byte("Hash"),
-			Number:    50.0,
-			Signature: []byte("Signature"),
-			PubKey:    []byte("PubKey"),
-		},
-	},
-
+	Version:       "0.0 QwQ",
+	Timestamp:     time.Now().Unix(),
 	PrevBlockHash: []byte("PrevBlockHash"),
 	Hash:          []byte("Hash"),
 	StageHash:     []byte("StageHash"),
@@ -95,16 +84,18 @@ func TcpListenWrapper() {
 }
 func SendingPBFTCRequest(duration int64) {
 	messageCheck.message = make(map[int]PBFT)
+	storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 	//首先读出当前的区块编号
-	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName))
+	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber))
 	blockNumber := IntDeserialize(blockNumberByte)
 	// 定时器，定时配置时间生成区块
 	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
 	go func() {
 		for t := range ticker.C { // 每进入一次新建一个
+			storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 			blockNumber++
 			// 在BoltDB中存入我们的blockNumber
-			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName), IntSerialize(blockNumber))
+			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
 			fmt.Println(colorout.Cyan("每Ns出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
 			fmt.Println(colorout.Purple("当前交易池交易数：" + strconv.Itoa(len(transactions))))
 			testPBFTmessage.BlockInfo.Transactions = transactions

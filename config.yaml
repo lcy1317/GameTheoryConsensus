@@ -6,10 +6,11 @@ BasicCfg:
   InitNodesNumberinGroup: "3"
   NumberPrecision: "17"
 ChainInfo:
-  DBFile: "./storage/test_blockchain2.db"
+  DBFile: "./storage/test_blockchain3.db"
   NodeDBFile: "./storage/"
   BlockSpeed: "2000" # 设定出块速度，单位ms
 TcpInfo:
   PBFTBaseAddress: "127.0.0.1"
   PBFTBasePortStart:  "13000"
-  ClientAddr: "127.0.0.1:12999"
+  ClientAddr: "127.0.0.1:12999" # 虚拟的客户端正向监听交易地址
+  ClientBackAddr : "127.0.0.1:12998" # 虚拟的客户端反向监听Commit信息的地址

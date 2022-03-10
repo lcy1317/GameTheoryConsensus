@@ -3,6 +3,7 @@ package main
 import (
 	bolt "bbolt"
 	"colorout"
+	"fmt"
 	"log"
 	"os"
 )
@@ -135,8 +136,27 @@ func BoltDBView(dbFile string, bucketName string, key []byte) (error, []byte) {
 	return nil, val
 }
 
+// 查看当前boltDB库中有哪些bucket，打印
+func printBoltDBBucket(dbFile string) {
+	db, err := bolt.Open(dbFile, 0600, nil)
+	if err != nil {
+		log.Println(colorout.Red("数据库打开出错:")+"%s", err.Error())
+	}
+	defer db.Close() // 及时关闭数据库
+	fmt.Println(colorout.Purple("当前打开数据库：" + dbFile + " Bucket列表如下："))
+	// 测试读取刚才的数据
+	err = db.Update(func(tx *bolt.Tx) error {
+		tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			fmt.Println(colorout.Purple(string(name)))
+			return nil
+		})
+		println("======")
+		return nil
+	})
+}
+
 // 数据库的读写。
-func BoltDBViewByte(dbFile string, bucketName []byte, key []byte, value []byte) (error, []byte) {
+func BoltDBViewByte(dbFile string, bucketName []byte, key []byte) (error, []byte) {
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		log.Println(colorout.Red("数据库打开出错:")+"%s", err.Error())

@@ -8,7 +8,8 @@ import (
 	"strconv"
 )
 
-const InitBucketName = "blockNumber"
+const InitBucketNameForBlockNumber = "blockNumber"
+const InitBucketNameForChainInfo = "blockInfo"
 
 func InitCheck() {
 	ConfigCheck()           // 测试是否能够读取配置文件。
@@ -31,9 +32,16 @@ func BoltDBBlockNumberInit() {
 		log.Fatal("数据库打开错误", err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(InitBucketName))
+		// 创建
+		_, err := tx.CreateBucketIfNotExists([]byte(InitBucketNameForBlockNumber))
 		if err != nil {
 			log.Fatalf(colorout.Red("创建区块数保存的Bucket出错:")+"%s", err.Error())
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte(InitBucketNameForChainInfo))
+		if err != nil {
+			log.Fatalf(colorout.Red("创建区块链详细数据保存的Bucket出错:")+"%s", err.Error())
 			return err
 		}
 		return nil
@@ -44,13 +52,13 @@ func BoltDBBlockNumberInit() {
 	db.Close() // 及时关闭数据库
 
 	// 读取测试，看是否有区块数，没有就需要放入键值
-	_, blockNumber := BoltDBView(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName))
+	_, blockNumber := BoltDBView(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber))
 	if blockNumber == nil {
-		_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketName, []byte(InitBucketName), IntSerialize(0))
+		_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(0))
 	} else {
 		fmt.Println(colorout.Yellow(strconv.Itoa(IntDeserialize(blockNumber))))
 	}
-
+	log.Print(colorout.Green("创建Bucket成功！读取或初始化区块数成功！"))
 }
 
 func BoltDBViewCheck() {

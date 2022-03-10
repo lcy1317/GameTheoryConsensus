@@ -1,6 +1,7 @@
 # GameTheoryConsensus
 
 ## Todo
+- 考虑是否加一个全局的blockNumber&StageNumber，减少读写次数。
 - 研究9th Commit中时候用select监听channel实现。
 - 文件名统一大小写
 - Commit之后节点的监听。
