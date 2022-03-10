@@ -95,13 +95,12 @@ func PBFTTcpListen(addr string) {
 			ifNext = tcpPBFTMessage.handlePrePrepare(getGroupNodeId(addr))
 		case CPrepare:
 			ifNext = tcpPBFTMessage.handlePrepare(getGroupNodeId(addr))
-			//fmt.Println(colorout.Yellow("收到Prepare消息"), ifNext)
 		case CCommit:
 			ifNext = tcpPBFTMessage.handleCommit(getGroupNodeId(addr))
-			//fmt.Println(colorout.Yellow("收到Commit消息"), ifNext)
 			// TODO: CEnded
 		}
-		fmt.Println(colorout.Cyan(addr + "接受到来自" + conn.RemoteAddr().String() + "Tcp消息，当前阶段为:" + tcpPBFTMessage.PBFTStage))
+		// PBFT消息打印
+		// fmt.Println(colorout.Cyan(addr + "接受到来自" + conn.RemoteAddr().String() + "Tcp消息，当前阶段为:" + tcpPBFTMessage.PBFTStage))
 		if ifNext {
 			// 回参：下一步的指令，给哪些端口发 入参：当前地址,当前阶段
 			portList, nextStage := ParseNextStep(addr, tcpPBFTMessage.PBFTStage)
@@ -169,7 +168,7 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
 			p.BlockInfo.storeBlockInfo()
-			fmt.Println(colorout.Yellow("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
+			fmt.Println(colorout.Purple("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
 			return true
 		}
 		return false

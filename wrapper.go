@@ -40,6 +40,9 @@ func testSendTransactions() {
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
+		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
+		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
+		testTx.getGeneralID()
 		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
 		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
 		testTx.Signature = []byte("Signature")

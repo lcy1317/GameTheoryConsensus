@@ -10,7 +10,9 @@ func (tx Transaction) printString() string {
 	} else {
 		str = str + " Type:" + strconv.Itoa(tx.Type) + " 解密"
 	}
-
+	str = str + " GroupID:" + strconv.Itoa(tx.GroupID)
+	str = str + " MyID:" + strconv.Itoa(tx.MyID)
+	str = str + " GeneralID:" + strconv.Itoa(tx.GeneralID)
 	str = str + " Hash:" + string(tx.Hash)
 	str = str + " Number:" + tx.getFloatNumString()
 	str = str + " Signature:" + string(tx.Signature)

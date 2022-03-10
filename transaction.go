@@ -10,12 +10,15 @@ import (
 // 考虑到仅实现共识流程，所以没有其他的输入输出部分，仅博弈数字相关的交易
 
 type Transaction struct {
-	TXid      []byte  //储存该交易所引用的交易id
+	TXid      []byte  // 储存该交易所引用的交易id
 	Type      int     // 0 - 上报 1 - 数字解密
-	Hash      string  //上报时候需要的字段 Hash(StageNumber + Number)
+	GroupID   int     // 交易里应包含我是哪个群组的
+	MyID      int     // 交易里应包含自己的群组内Id
+	GeneralID int     // GeneralID我定义为MyID*100+GroupID，因为通常PBFT节点数量100-
+	Hash      string  // 上报时候需要的字段 Hash(StageNumber + Number)
 	Number    float64 // 解密时候的字段
-	Signature []byte  //TODO:签名
-	PubKey    []byte  //TODO:公钥
+	Signature []byte  // TODO:签名
+	PubKey    []byte  // TODO:公钥
 }
 
 func (tx *Transaction) validating() bool {
@@ -42,12 +45,20 @@ func (tx *Transaction) getFloatNumString() string {
 	return strconv.FormatFloat(tx.Number, 'f', Conf.Basic.NumberPrecision, 64)
 }
 
+func (tx *Transaction) getGeneralID() {
+	tx.GeneralID = tx.MyID*100 + tx.GroupID
+	return
+}
+
 func (tx *Transaction) getTXHash() string {
 	//交易的哈希值
 	var txHashes [][]byte
 	bn, sn := getBlockNumandStageNum()
 	txHashes = append(txHashes, tx.TXid)
 	txHashes = append(txHashes, getNumberByte(tx.Type))
+	txHashes = append(txHashes, getNumberByte(tx.MyID))
+	txHashes = append(txHashes, getNumberByte(tx.GroupID))
+	txHashes = append(txHashes, getNumberByte(tx.GeneralID))
 	txHashes = append(txHashes, getNumberByte(bn))
 	txHashes = append(txHashes, getNumberByte(sn))
 	return getSHA256Hash(bytes.Join(txHashes, []byte{}))
