@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"log"
 	"strconv"
@@ -13,7 +12,7 @@ import (
 type Transaction struct {
 	TXid      []byte  //储存该交易所引用的交易id
 	Type      int     // 0 - 上报 1 - 数字解密
-	Hash      []byte  //上报时候需要的字段 Hash(StageNumber + Number)
+	Hash      string  //上报时候需要的字段 Hash(StageNumber + Number)
 	Number    float64 // 解密时候的字段
 	Signature []byte  //TODO:签名
 	PubKey    []byte  //TODO:公钥
@@ -43,15 +42,24 @@ func (tx *Transaction) getFloatNumString() string {
 	return strconv.FormatFloat(tx.Number, 'f', Conf.Basic.NumberPrecision, 64)
 }
 
-func (tx *Transaction) getHash() []byte {
+func (tx *Transaction) getTXHash() string {
+	//交易的哈希值
+	var txHashes [][]byte
+	bn, sn := getBlockNumandStageNum()
+	txHashes = append(txHashes, tx.TXid)
+	txHashes = append(txHashes, getNumberByte(tx.Type))
+	txHashes = append(txHashes, getNumberByte(bn))
+	txHashes = append(txHashes, getNumberByte(sn))
+	return getSHA256Hash(bytes.Join(txHashes, []byte{}))
+}
+
+func (tx *Transaction) getHash() string {
 	//上报时候需要的字段 Hash(StageNumber + Number)
 	var txHashes [][]byte
-	var txHash [32]byte
 	_, sn := getBlockNumandStageNum()
 	txHashes = append(txHashes, IntSerialize(sn))
 	txHashes = append(txHashes, []byte(tx.getFloatNumString()))
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
-	return txHash[:]
+	return getSHA256Hash(bytes.Join(txHashes, []byte{}))
 }
 
 // 序列化交易

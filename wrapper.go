@@ -15,9 +15,9 @@ import (
 var testBlockMessage = Block{
 	Version:       "0.0 QwQ",
 	Timestamp:     time.Now().Unix(),
-	PrevBlockHash: []byte("PrevBlockHash"),
-	Hash:          []byte("Hash"),
-	StageHash:     []byte("StageHash"),
+	PrevBlockHash: "PrevBlockHash",
+	Hash:          "Hash",
+	StageHash:     "StageHash",
 	BlockNum:      1,
 	StageNum:      1,
 }
@@ -34,13 +34,14 @@ func testSendTransactions() {
 	a := 0
 	for {
 		a++
+		// TODO: 解密和上报时候信息不一样哦！
 		time.Sleep(time.Duration(rand.Intn(600)) * time.Millisecond) // 设置延时
 		fmt.Print(colorout.Yellow("开始随机间隔发送交易信息，正在发送消息编号"+strconv.Itoa(a)) + "   ")
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
-		testTx.Hash = testTx.getHash()
 		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
 		testTx.Signature = []byte("Signature")
 		testTx.PubKey = []byte("PubKey")
 		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
@@ -99,7 +100,7 @@ func SendingPBFTCRequest(duration int64) {
 			fmt.Println(colorout.Cyan("每Ns出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
 			fmt.Println(colorout.Purple("当前交易池交易数：" + strconv.Itoa(len(transactions))))
 			testPBFTmessage.BlockInfo.Transactions = transactions
-			testPBFTmessage.BlockNumberSet(blockNumber) // 更新区块信息以及阶段信息。
+			testPBFTmessage.BlockInfo.newBlockInfo(blockNumber) // 更新打包的区块内的区块信息
 			fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + testPBFTmessage.printString()))
 			messageCheck.message[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))

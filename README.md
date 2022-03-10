@@ -7,6 +7,11 @@
 - Commit之后节点的监听。
 
 ## 更新日志
+
+- 14th Commit: 处理了交易里的一些hash值，换了函数同时对输出做了处理
+- ![image-20220310143803624](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220310143803624.png)
+- 13th Commit: 新增完成Commit之后的反应。整个Commit达成后节点的视图是一致的，对于PBFT流程达成就行了。所以我只让第一个Commit的节点去在主链库里存一下数据，存下来block内的信息。以便后续查看。同时增加了一个工具函数用以显示某个库中有哪些bucket。
+- ![image-20220310143813479](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220310143813479.png)
 - 12th Commit: 更新了一下交易的验证，wrapper.go会对来的交易进行格式的验证，如果上报/解密过程与当前区块运行时间要求不符合，该交易不会被打包。**从理论上说这个打包抑或不打包应该被区块链见证，也就是应该是区块链节点接受消息，自己验证然后传播这样，已然这里仿真还是我一时半会写不明白，就暂且如此，能跑就好。**下一步要验证一下删库能不能自己跑以及稳定不稳定。
 - ![image-20220309222038469](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220309222038469.png)
 - 11th Commit: 更新了一下Transaction的内**数字上报的哈希计算**，新增了模拟交易的随机数，马上测试一下当前程序是否是稳定的。摆在那持续运行一下。

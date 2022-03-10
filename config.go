@@ -13,7 +13,6 @@ type TcpInfoCfg struct {
 	PBFTBaseAddress   string `json:"PBFTBaseAddress"`
 	PBFTBasePortStart int    `json:"PBFTBasePortStart"`
 	ClientAddr        string `json:"ClientAddr"`
-	ClientBackAddr    string `json:"ClientBackAddr"`
 }
 
 type ChainInfoCfg struct {
@@ -56,7 +55,6 @@ func configInitial() error {
 			PBFTBaseAddress:   viper.GetString("TcpInfo.PBFTBaseAddress"),
 			PBFTBasePortStart: viper.GetInt("TcpInfo.PBFTBasePortStart"),
 			ClientAddr:        viper.GetString("TcpInfo.ClientAddr"),
-			ClientBackAddr:    viper.GetString("TcpInfo.ClientBackAddr"),
 		},
 	}
 	return nil

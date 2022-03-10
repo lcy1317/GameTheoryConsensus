@@ -2,15 +2,23 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"log"
 	"strconv"
 	"strings"
 )
 
+func getSHA256Hash(data []byte) string {
+	h := sha256.New()
+	h.Write(data)
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 // 将区块编号如Int类型的1157转变成byte类型”1157“，作为存入数据库的Key。
-func getBlockNumberByte(blockNumber int) []byte {
-	return []byte(strconv.Itoa(blockNumber))
+func getNumberByte(num int) []byte {
+	return []byte(strconv.Itoa(num))
 }
 
 // 从数据库中获取上一个区块的Hash值。作为当前区块的prevHash

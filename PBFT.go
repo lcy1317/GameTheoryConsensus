@@ -25,11 +25,6 @@ type PBFTMessage struct {
 	PBFTStage   string // 参考ConsensusUtils里面的定义，阶段是不同的。
 }
 
-func (p *PBFTMessage) BlockNumberSet(blockNumber int) {
-	p.BlockInfo.BlockNum = blockNumber // 设置当前的blockNumber值
-	p.BlockInfo.StageNum = (blockNumber / Conf.Basic.StageBlockNumber) + 1
-}
-
 type PBFT struct {
 	Message PBFTMessage // TODO:PBFT对应的Message
 	//lock    sync.Mutex
