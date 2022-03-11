@@ -7,11 +7,6 @@ var nowHash string     // 一个暂时的解决办法，不知道为什么反序
 
 func main() {
 	InitCheck()
-	//BoltDBPutByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForBlockHash), []byte("测试"), []byte("你妈的"))
-	//_, caoLe := BoltDBViewByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForBlockHash), []byte("测试"))
-	//fmt.Println("caole ", string(caoLe), " caole")
-	//select {}
-
 	//printBoltDBBucket(Conf.ChainInfo.DBFile)
 	//printBoltDBBucket("./storage/MessagePoolNode1.db")
 	/**************************************************************/
