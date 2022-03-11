@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"color"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
@@ -23,15 +24,21 @@ func getNumberByte(num int) []byte {
 
 // 从数据库中获取上一个区块的Hash值。作为当前区块的prevHash
 
-func getPrevBlockHash() []byte {
-	_, blockNumberByte := BoltDBView(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber))
-	blockNumber := IntDeserialize(blockNumberByte)
-	if blockNumber == 0 {
-		return []byte("Genesis Block!")
+func getPrevBlockHash() string { // TODO: 这段一旦加上一定出错，操了，我吐了，怎么就读取爆炸？？？？
+	if nowBlockNumber == 0 {
+		return "Genesis Block!"
 	}
-	blockNumber--
-	//TODO: 处理完commit消息的Cend之后去区块链数据库中存一下区块信息。
-	return []byte("")
+	// 处理完commit消息的Cend之后去区块链数据库中存一下区块信息。
+	_, prevBlockByte := BoltDBViewByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForBlockHash), getNumberByte(nowBlockNumber-1))
+	color.Redln(prevBlockByte)
+	hash := ""
+	if len(prevBlockByte) < 10 {
+		hash = "Get PrevHash Error!"
+	} else {
+		hash = string(prevBlockByte)
+	}
+
+	return hash
 }
 
 // 从配置文件中获取当前区块编号，阶段编号， GameTheoryStop， RevealStop

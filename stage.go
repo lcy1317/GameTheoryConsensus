@@ -57,7 +57,7 @@ func stageCheck(blockNumber int) {
 func (s *stageInfo) selectNode() { // TODO： 重新处理，当前不能有节点不报。
 	sort.Sort(s) // 从小到大排序
 	if len(s.gameNodes) < Conf.Basic.GroupNumber*Conf.Basic.InitNodesNumberinGroup {
-		log.Println("节点为全部上报信息")
+		log.Println("节点未全部上报信息")
 		return
 	}
 	for i := 0; i < Conf.Basic.GroupNumber; i++ {

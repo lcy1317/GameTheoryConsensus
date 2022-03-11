@@ -164,7 +164,6 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			// 首先更改确认传递的状态
 			messageCheck.message[blockNumber].isReply[nodeID] = true
 			// 在这里收到足够的Commit，所以要在数据库中存下数据。
-			//BoltDBPutByte(dbFileName, IntSerialize(blockNumber), IntSerialize(blockNumber), p.PBFTSerialize())
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
 			p.BlockInfo.storeBlockInfo()

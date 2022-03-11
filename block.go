@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -55,7 +56,10 @@ func (b Block) storeBlockInfo() {
 		storeBlockInfo.check = true
 		// 存儲打印
 		//fmt.Println("存储中...区块号：", strconv.Itoa(b.BlockNum), " Data:", b.printString())
+		fmt.Println("存储中...区块号：", strconv.Itoa(b.BlockNum), " 区块哈希:", b.Hash)
 		BoltDBPutByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForChainInfo), getNumberByte(b.BlockNum), b.BlockSerialize())
+		BoltDBPutByte(Conf.ChainInfo.DBFile, []byte(InitBucketNameForBlockHash), getNumberByte(b.BlockNum), []byte(b.Hash))
+		nowHash = b.Hash
 	}
 	return
 }
@@ -77,7 +81,7 @@ func BlockDeserialize(data []byte) Block {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&b)
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
 	}
 	return b
 }

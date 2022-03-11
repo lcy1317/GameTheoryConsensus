@@ -151,9 +151,12 @@ func SendingPBFTCRequest(duration int64) {
 			stageCheck(blockNumber) // 检查当前的stage是不是结束了要排序等
 			// 在BoltDB中存入我们的blockNumber
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
-			fmt.Println(colorout.Cyan("每Ns出块一个"), t, colorout.Cyan("当前区块："+strconv.Itoa(blockNumber)))
-			fmt.Println(colorout.Purple("当前交易池交易数：" + strconv.Itoa(len(transactions))))
+			nowBlockNumber, nowStageNumber = getBlockNumandStageNum()
+			fmt.Println(t, colorout.Purple("当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
+			// 将生成的交易打包
 			testPBFTmessage.BlockInfo.Transactions = transactions
+			testPBFTmessage.BlockInfo.PrevBlockHash = nowHash
+			//testPBFTmessage.BlockInfo.PrevBlockHash = getPrevBlockHash() // TODO: 一旦用这个函数直接爆炸，不知道为什么！！！！
 			testPBFTmessage.BlockInfo.newBlockInfo(blockNumber) // 更新打包的区块内的区块信息
 			fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + testPBFTmessage.printString()))
 			messageCheck.message[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool

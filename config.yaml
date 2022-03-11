@@ -8,7 +8,7 @@ BasicCfg:
 ChainInfo:
   DBFile: "./storage/test_blockchain3.db"
   NodeDBFile: "./storage/"
-  BlockSpeed: "2000" # 设定出块速度，单位ms
+  BlockSpeed: "1500" # 设定出块速度，单位ms
 TcpInfo:
   PBFTBaseAddress: "127.0.0.1"
   PBFTBasePortStart:  "13000"

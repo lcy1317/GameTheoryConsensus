@@ -46,7 +46,7 @@ func (p PBFTMessage) printString() string {
 
 func (s stageInfo) printString() string {
 	str := "StageInfo:" + strconv.Itoa(s.stageNumber)
-	str = str + "upLayerNodes:"
+	str = str + " UpLayerNodes:"
 	for i := 0; i < len(s.upLayerNodes); i++ {
 		str = str + strconv.Itoa(s.upLayerNodes[i]) + " "
 	}

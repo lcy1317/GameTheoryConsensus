@@ -22,18 +22,16 @@ type Transaction struct {
 }
 
 func (tx *Transaction) validating() bool {
-	blockNum, _ := getBlockNumandStageNum()
-	stageNum, gameStop, revealStop := getStagesByBlockNum(blockNum)
-	//color.Redln(blockNum, stageNum, (stageNum-1)*Conf.Basic.StageBlockNumber, gameStop, revealStop)
+	_, gameStop, revealStop := getStagesByBlockNum(nowBlockNumber)
 	if tx.Type == 0 { // 上报
-		if blockNum >= (stageNum-1)*Conf.Basic.StageBlockNumber && blockNum <= gameStop {
+		if nowBlockNumber >= (nowStageNumber-1)*Conf.Basic.StageBlockNumber && nowBlockNumber <= gameStop {
 			return true
 		} else {
 			return false
 		}
 	}
 	if tx.Type == 1 { // 解密
-		if blockNum > gameStop && blockNum <= revealStop {
+		if nowBlockNumber > gameStop && nowBlockNumber <= revealStop {
 			// TODO: 可能需要修改
 			// 将数字存储起来
 			var tmp nodesInfo
