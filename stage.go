@@ -94,13 +94,16 @@ func (s stageInfo) Less(i, j int) bool {
 	return false
 }
 
+var nodesGameStage map[int]bool
+var nodesRevealStage map[int]bool
+
 // 该函数用来从配置中生成并返回一个list，代表有效的节点。避免重复，大概如此。
 func validNodes() {
-	var nodesList []int
 	for groupID := 0; groupID < Conf.Basic.GroupNumber; groupID++ {
 		for myID := 0; myID < Conf.Basic.InitNodesNumberinGroup; myID++ {
 			generalID := myID*100 + groupID
-			nodesList = append(nodesList, generalID)
+			nodesGameStage[generalID] = false
+			nodesRevealStage[generalID] = false
 		}
 	}
 	return

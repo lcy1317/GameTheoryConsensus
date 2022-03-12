@@ -2,12 +2,16 @@
 
 ## Todo
 - ！！！PrevHash没有处理
-- ！！！当前必须全部节点不多不少上报才能找中位数。太逊了。得重写一下。
-- 考虑是否加一个全局的blockNumber&StageNumber，减少读写次数。
 - 研究9th Commit中时候用select监听channel实现。
 - 文件名统一大小写
 
 ## 更新日志
+
+- 19th Commit: 更新了每个阶段的内的交易验证，感觉还挺好看的
+
+- ![image-20220312155052223](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220312155052223.png)
+
+- ![image-20220312155108201](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220312155108201.png)
 
 - 18th Commit: 更新节点排序后的主节点select过程，有缺失也可以了。下一步更新交易的validating部分，需要保证每一个stage一个节点只能有一个上报或者一个解密。
 

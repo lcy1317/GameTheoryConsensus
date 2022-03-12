@@ -21,32 +21,42 @@ type Transaction struct {
 	PubKey    []byte  // TODO:公钥
 }
 
-func (tx *Transaction) validating() bool {
+func (tx *Transaction) validating() (bool, string) {
 	_, gameStop, revealStop := getStagesByBlockNum(nowBlockNumber)
 	if tx.Type == 0 { // 上报
 		if nowBlockNumber >= (nowStageNumber-1)*Conf.Basic.StageBlockNumber && nowBlockNumber <= gameStop {
-			return true
+			// TODO: 这是后续需要实现的东西了，if I want
+			if nodesGameStage[tx.GeneralID] == true {
+				return false, " Repeated UpLoad"
+			} else {
+				nodesGameStage[tx.GeneralID] = true
+				return true, " UpLoadSuccess"
+			}
 		} else {
-			return false
+			return false, " This is Not UpLoad Stage Time"
 		}
 	}
 	if tx.Type == 1 { // 解密
 		if nowBlockNumber > gameStop && nowBlockNumber <= revealStop {
-			// TODO: 可能需要修改
-			// 将数字存储起来
-			var tmp nodesInfo
-			tmp.number = tx.Number
-			tmp.GeneralID = tx.GeneralID
-			tmp.GroupID = tx.GeneralID % 100
-			stagePool.lock.Lock()
-			defer stagePool.lock.Unlock()
-			stagePool.stage.gameNodes = append(stagePool.stage.gameNodes, tmp) //将解密的交易加上去
-			return true
+			if nodesRevealStage[tx.GeneralID] == true {
+				return false, " Repeated Reveal"
+			} else {
+				nodesRevealStage[tx.GeneralID] = true
+				// 将数字存储起来
+				var tmp nodesInfo
+				tmp.number = tx.Number
+				tmp.GeneralID = tx.GeneralID
+				tmp.GroupID = tx.GeneralID % 100
+				stagePool.lock.Lock()
+				defer stagePool.lock.Unlock()
+				stagePool.stage.gameNodes = append(stagePool.stage.gameNodes, tmp) //将解密的交易加上去
+				return true, " Reveal Success"
+			}
 		} else {
-			return false
+			return false, " This is Not Reveal Stage Time"
 		}
 	}
-	return true
+	return true, " Transaction Valid"
 }
 
 func (tx *Transaction) getFloatNumString() string {

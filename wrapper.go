@@ -30,75 +30,75 @@ var testPBFTmessage = &PBFTMessage{
 
 var transactions []*Transaction
 
-func testSendTransactions() {
-	a := 0
-	for {
-		blockNum, stageNum := getBlockNumandStageNum()
-		startNum := (stageNum - 1) * Conf.Basic.StageBlockNumber
-		if blockNum == startNum { // 开始上报
-			for i := 0; i < Conf.Basic.GroupNumber; i++ {
-				for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
-					a++
-					// TODO: 解密和上报时候信息不一样哦！
-					time.Sleep(200 * time.Millisecond) // 设置延时
-					fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-					testTx := new(Transaction)
-					testTx.TXid = IntSerialize(a)
-					testTx.Type = 0
-					testTx.MyID = j
-					testTx.GroupID = i
-					testTx.getGeneralID()
-					testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-					testTx.Signature = []byte("Signature")
-					testTx.PubKey = []byte("PubKey")
-					TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-				}
-			}
-		} else {
-			if blockNum == startNum+Conf.Basic.GameTheoryStop { // 开始上报
-				for i := 0; i < Conf.Basic.GroupNumber; i++ {
-					for j := 0; j < Conf.Basic.InitNodesNumberinGroup-1; j++ {
-						a++
-						// TODO: 解密和上报时候信息不一样哦！
-						time.Sleep(200 * time.Millisecond) // 设置延时
-						fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-						testTx := new(Transaction)
-						testTx.TXid = IntSerialize(a)
-						testTx.Type = 1
-						testTx.MyID = j
-						testTx.GroupID = i
-						testTx.getGeneralID()
-						testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-						testTx.Signature = []byte("Signature")
-						testTx.PubKey = []byte("PubKey")
-						TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-					}
-				}
-			}
-		}
-	}
-}
-
 //func testSendTransactions() {
 //	a := 0
 //	for {
-//		a++
-//		// TODO: 解密和上报时候信息不一样哦！
-//		time.Sleep(time.Duration(rand.Intn(600)) * time.Millisecond) // 设置延时
-//		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-//		testTx := new(Transaction)
-//		testTx.TXid = IntSerialize(a)
-//		testTx.Type = rand.Intn(2)
-//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
-//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
-//		testTx.getGeneralID()
-//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-//		testTx.Signature = []byte("Signature")
-//		testTx.PubKey = []byte("PubKey")
-//		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+//		blockNum, stageNum := getBlockNumandStageNum()
+//		startNum := (stageNum - 1) * Conf.Basic.StageBlockNumber
+//		if blockNum == startNum { // 开始上报
+//			for i := 0; i < Conf.Basic.GroupNumber; i++ {
+//				for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
+//					a++
+//					// TODO: 解密和上报时候信息不一样哦！
+//					time.Sleep(200 * time.Millisecond) // 设置延时
+//					fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+//					testTx := new(Transaction)
+//					testTx.TXid = IntSerialize(a)
+//					testTx.Type = 0
+//					testTx.MyID = j
+//					testTx.GroupID = i
+//					testTx.getGeneralID()
+//					testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+//					testTx.Signature = []byte("Signature")
+//					testTx.PubKey = []byte("PubKey")
+//					TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+//				}
+//			}
+//		} else {
+//			if blockNum == startNum+Conf.Basic.GameTheoryStop { // 开始上报
+//				for i := 0; i < Conf.Basic.GroupNumber; i++ {
+//					for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
+//						a++
+//						// TODO: 解密和上报时候信息不一样哦！
+//						time.Sleep(200 * time.Millisecond) // 设置延时
+//						fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+//						testTx := new(Transaction)
+//						testTx.TXid = IntSerialize(a)
+//						testTx.Type = 1
+//						testTx.MyID = j
+//						testTx.GroupID = i
+//						testTx.getGeneralID()
+//						testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+//						testTx.Signature = []byte("Signature")
+//						testTx.PubKey = []byte("PubKey")
+//						TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+//					}
+//				}
+//			}
+//		}
 //	}
 //}
+
+func testSendTransactions() {
+	a := 0
+	for {
+		a++
+		// TODO: 解密和上报时候信息不一样哦！
+		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond) // 设置延时
+		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+		testTx := new(Transaction)
+		testTx.TXid = IntSerialize(a)
+		testTx.Type = rand.Intn(2)
+		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
+		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
+		testTx.getGeneralID()
+		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+		testTx.Signature = []byte("Signature")
+		testTx.PubKey = []byte("PubKey")
+		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+	}
+}
 
 // 监听交易的一个函数
 func TcpListenWrapper() {
@@ -126,17 +126,19 @@ func TcpListenWrapper() {
 		}
 		tx := new(Transaction)
 		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
-		txValidating := tx.validating()
+		txValidating, message := tx.validating()
 		if !txValidating {
-			fmt.Println(colorout.Red(addr+"接受到非法事务消息:"), tx.printString())
+			fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
 			continue
 		}
 		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
-		fmt.Println(colorout.Cyan(addr+"接受到事务消息:"), tx.printString())
+		fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
 	}
 }
 func SendingPBFTCRequest(duration int64) {
-	messageCheck.message = make(map[int]PBFT)
+	messageCheck.message = make(map[int]PBFT) // PBFT.go For message validating
+	nodesGameStage = make(map[int]bool)       // stage.go For validation checking, avoiding several tx in one single stage
+	nodesRevealStage = make(map[int]bool)     // stage.go For validation checking, avoiding several tx in one single stage
 	stagePool.ifSort = false
 	storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 	//首先读出当前的区块编号
@@ -147,11 +149,12 @@ func SendingPBFTCRequest(duration int64) {
 	go func() {
 		for t := range ticker.C { // 每进入一次新建一个
 			storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
-			blockNumber++
-			stageCheck(blockNumber) // 检查当前的stage是不是结束了要排序等
+			validNodes()                 // Refresh Stage Check
+			blockNumber++                // Add the BlockNumber
+			stageCheck(blockNumber)      // 检查当前的stage是不是结束了要排序等
 			// 在BoltDB中存入我们的blockNumber
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
-			nowBlockNumber, nowStageNumber = getBlockNumandStageNum()
+			nowBlockNumber, nowStageNumber = getBlockNumandStageNum() // 获得全局的BlockNumber以及StageNumber，后面很多地方还没有重构。
 			fmt.Println(t, colorout.Purple("当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
 			// 将生成的交易打包
 			testPBFTmessage.BlockInfo.Transactions = transactions
