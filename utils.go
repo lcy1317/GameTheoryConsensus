@@ -64,7 +64,7 @@ func getGroupNodeId(addr string) int {
 	return portNumber % 100
 }
 
-// 序列化PBFT信息
+// 序列化Int
 func IntSerialize(number int) []byte {
 	var encoded bytes.Buffer
 	encoder := gob.NewEncoder(&encoded)
@@ -75,7 +75,7 @@ func IntSerialize(number int) []byte {
 	return encoded.Bytes()
 }
 
-// 反序列化PBFT信息
+// 反序列化Int
 func IntDeserialize(data []byte) int {
 	var b int
 	decoder := gob.NewDecoder(bytes.NewReader(data))

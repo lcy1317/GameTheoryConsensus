@@ -48,7 +48,8 @@ func (s stageInfo) printString() string {
 	str := "StageInfo:" + strconv.Itoa(s.stageNumber)
 	str = str + " UpLayerNodes:"
 	for i := 0; i < len(s.upLayerNodes); i++ {
-		str = str + strconv.Itoa(s.upLayerNodes[i]) + " "
+		tmp := s.upLayerNodes[i]
+		str = str + " G" + strconv.Itoa(tmp%100) + "N" + strconv.Itoa(tmp/100)
 	}
 	return str
 }

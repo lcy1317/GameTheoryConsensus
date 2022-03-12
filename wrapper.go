@@ -57,7 +57,7 @@ func testSendTransactions() {
 		} else {
 			if blockNum == startNum+Conf.Basic.GameTheoryStop { // 开始上报
 				for i := 0; i < Conf.Basic.GroupNumber; i++ {
-					for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
+					for j := 0; j < Conf.Basic.InitNodesNumberinGroup-1; j++ {
 						a++
 						// TODO: 解密和上报时候信息不一样哦！
 						time.Sleep(200 * time.Millisecond) // 设置延时

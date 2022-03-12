@@ -20,6 +20,7 @@ func InitCheck() {
 	BoltDBBlockNumberInit() // 初始化boltDB的BlockNumber
 	PortListeningInit()     // 根据配置文件中的群主个数，从12000端口开端口监听
 }
+
 func PortListeningInit() {
 	for i := 0; i < Conf.Basic.GroupNumber; i++ {
 		portNumber := Conf.TcpInfo.PBFTBasePortStart + i
