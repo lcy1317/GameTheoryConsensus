@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"sync"
 )
@@ -53,7 +54,6 @@ func stageCheck(blockNumber int) {
 		}
 	}
 }
-
 func (s *stageInfo) selectNode() {
 	sort.Sort(s) // 从小到大排序
 	if len(s.gameNodes) == 0 {
@@ -73,16 +73,59 @@ func (s *stageInfo) selectNode() {
 	nowNodes := 0
 
 	for i := 0; i < Conf.Basic.GroupNumber; i++ {
-		// 找到中位数节点
+		// 找到平均数节点
 		if nodes[i] == 0 { // 当前群组节点为空
 			log.Println("存在无信息群组，进入下一轮")
 			return
 		}
-		middle := (nowNodes + nowNodes + nodes[i]) / 2
+		tot, k := 0.0, 0.0
+		for j := 0; j < nodes[i]; j++ {
+			tot += s.gameNodes[j].number
+			k += 1
+		}
+		tot = tot / k
+		ansk := nowNodes
+		maxd := 200.0
+		for j := 0; j < nodes[i]; j++ {
+			if math.Abs(s.gameNodes[ansk].number-s.gameNodes[nowNodes+j].number) < maxd {
+				maxd = math.Abs(s.gameNodes[ansk].number - s.gameNodes[nowNodes+j].number)
+				ansk = j + nowNodes
+			}
+		}
 		nowNodes = nowNodes + nodes[i]
-		s.upLayerNodes = append(s.upLayerNodes, s.gameNodes[middle].GeneralID)
+		s.upLayerNodes = append(s.upLayerNodes, s.gameNodes[ansk].GeneralID)
 	}
 }
+
+//func (s *stageInfo) selectNode() {
+//	sort.Sort(s) // 从小到大排序
+//	if len(s.gameNodes) == 0 {
+//		log.Println("没有节点上报信息")
+//		return
+//	}
+//	var nodes map[int]int // 保存所有群组中节点个数的临时map
+//	nodes = make(map[int]int)
+//	for i := 0; i < Conf.Basic.GroupNumber; i++ {
+//		nodes[i] = 0
+//	}
+//
+//	for i := 0; i < len(s.gameNodes); i++ {
+//		// 遍历所有的节点，找到每个群组的个数应该是多少。
+//		nodes[s.gameNodes[i].GroupID]++
+//	}
+//	nowNodes := 0
+//
+//	for i := 0; i < Conf.Basic.GroupNumber; i++ {
+//		// 找到中位数节点
+//		if nodes[i] == 0 { // 当前群组节点为空
+//			log.Println("存在无信息群组，进入下一轮")
+//			return
+//		}
+//		middle := (nowNodes + nowNodes + nodes[i]) / 2
+//		nowNodes = nowNodes + nodes[i]
+//		s.upLayerNodes = append(s.upLayerNodes, s.gameNodes[middle].GeneralID)
+//	}
+//}
 func (s stageInfo) Swap(i, j int) { s.gameNodes[i], s.gameNodes[j] = s.gameNodes[j], s.gameNodes[i] }
 func (s stageInfo) Len() int      { return len(s.gameNodes) }
 func (s stageInfo) Less(i, j int) bool {

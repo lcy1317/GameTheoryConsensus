@@ -41,7 +41,7 @@ func testSendTransactions() {
 			log.Println("初始发送链接错误", err)
 			return
 		}
-		time.Sleep(time.Duration(rand.Intn(200)) * time.Microsecond) // 设置延时
+		time.Sleep(time.Duration(rand.Intn(20000)) * time.Microsecond) // 设置延时
 		fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
