@@ -30,62 +30,19 @@ var testPBFTmessage = &PBFTMessage{
 
 var transactions []*Transaction
 
-//func testSendTransactions() {
-//	a := 0
-//	for {
-//		blockNum, stageNum := getBlockNumandStageNum()
-//		startNum := (stageNum - 1) * Conf.Basic.StageBlockNumber
-//		if blockNum == startNum { // 开始上报
-//			for i := 0; i < Conf.Basic.GroupNumber; i++ {
-//				for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
-//					a++
-//					// TODO: 解密和上报时候信息不一样哦！
-//					time.Sleep(200 * time.Millisecond) // 设置延时
-//					fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-//					testTx := new(Transaction)
-//					testTx.TXid = IntSerialize(a)
-//					testTx.Type = 0
-//					testTx.MyID = j
-//					testTx.GroupID = i
-//					testTx.getGeneralID()
-//					testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-//					testTx.Signature = []byte("Signature")
-//					testTx.PubKey = []byte("PubKey")
-//					TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-//				}
-//			}
-//		} else {
-//			if blockNum == startNum+Conf.Basic.GameTheoryStop { // 开始上报
-//				for i := 0; i < Conf.Basic.GroupNumber; i++ {
-//					for j := 0; j < Conf.Basic.InitNodesNumberinGroup; j++ {
-//						a++
-//						// TODO: 解密和上报时候信息不一样哦！
-//						time.Sleep(200 * time.Millisecond) // 设置延时
-//						fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-//						testTx := new(Transaction)
-//						testTx.TXid = IntSerialize(a)
-//						testTx.Type = 1
-//						testTx.MyID = j
-//						testTx.GroupID = i
-//						testTx.getGeneralID()
-//						testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-//						testTx.Signature = []byte("Signature")
-//						testTx.PubKey = []byte("PubKey")
-//						TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-
 func testSendTransactions() {
 	a := 0
+
 	for {
 		a++
 		// TODO: 解密和上报时候信息不一样哦！
-		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond) // 设置延时
-		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+		conn, err := net.Dial("tcp", Conf.TcpInfo.ClientAddr)
+		if err != nil {
+			log.Println("初始发送链接错误", err)
+			return
+		}
+		time.Sleep(time.Duration(rand.Intn(200)) * time.Microsecond) // 设置延时
+		fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
@@ -96,9 +53,34 @@ func testSendTransactions() {
 		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
 		testTx.Signature = []byte("Signature")
 		testTx.PubKey = []byte("PubKey")
-		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+		_, err = conn.Write(testTx.TXSerialize())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
+
+//原版的发小消息。每次重新建立链接，容易爆炸
+//func testSendTransactions() {
+//	a := 0
+//	for {
+//		a++
+//		// TODO: 解密和上报时候信息不一样哦！
+//		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond) // 设置延时
+//		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+//		testTx := new(Transaction)
+//		testTx.TXid = IntSerialize(a)
+//		testTx.Type = rand.Intn(2)
+//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
+//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
+//		testTx.getGeneralID()
+//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+//		testTx.Signature = []byte("Signature")
+//		testTx.PubKey = []byte("PubKey")
+//		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
+//	}
+//}
 
 // 监听交易的一个函数
 func TcpListenWrapper() {
@@ -128,11 +110,15 @@ func TcpListenWrapper() {
 		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
 		txValidating, message := tx.validating()
 		if !txValidating {
-			fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
+			if ifPrint {
+				fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
+			}
 			continue
 		}
 		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
-		fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
+		if ifPrint {
+			fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
+		}
 	}
 }
 func SendingPBFTCRequest(duration int64) {

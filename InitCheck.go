@@ -27,6 +27,26 @@ func PortListeningInit() {
 		address := Conf.TcpInfo.PBFTBaseAddress + ":" + strconv.Itoa(portNumber)
 		go PBFTTcpListen(address)
 	}
+	//time.Sleep(3 * time.Second)
+	//TcpConn = make(map[string]map[string]net.Conn)
+	//for i := 0; i < Conf.Basic.GroupNumber; i++ {
+	//	portNumber := Conf.TcpInfo.PBFTBasePortStart + i
+	//	addr := Conf.TcpInfo.PBFTBaseAddress + ":" + strconv.Itoa(portNumber)
+	//	TcpConn[addr] = make(map[string]net.Conn)
+	//	for i := 0; i < Conf.Basic.GroupNumber; i++ {
+	//		var err error
+	//		portNumber := Conf.TcpInfo.PBFTBasePortStart + i
+	//		address := Conf.TcpInfo.PBFTBaseAddress + ":" + strconv.Itoa(portNumber)
+	//		if address == addr { // 不和自己建立连接
+	//			continue
+	//		}
+	//		TcpConn[addr][address], err = net.Dial("tcp", address)
+	//		if err != nil {
+	//			log.Println("初始发送链接错误", err)
+	//			return
+	//		}
+	//	}
+	//}
 }
 
 func BoltDBBlockNumberInit() {

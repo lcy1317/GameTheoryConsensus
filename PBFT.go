@@ -111,6 +111,10 @@ func PBFTTcpListen(addr string) {
 				nextTcpMessage.GroupNodeId = getGroupNodeId(addr) // 根据地址确定当前发消息来的节点是那个，传下去消息的时候节点会变
 				for _, port := range portList {
 					TcpDial(nextTcpMessage.PBFTSerialize(), port)
+					//_, err := TcpConn[addr][port].Write(nextTcpMessage.PBFTSerialize())
+					//if err != nil {
+					//	log.Fatal(err)
+					//}
 				}
 			}
 		}

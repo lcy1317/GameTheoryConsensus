@@ -1,9 +1,9 @@
 BasicCfg:
-  GroupNumber:  "4"
+  GroupNumber:  "22"
   StageBlockNumber: "12"
   GameTheoryStop: "6"
   RevealStop: "9"
-  InitNodesNumberinGroup: "3"
+  InitNodesNumberinGroup: "4"
   NumberPrecision: "17"
 ChainInfo:
   DBFile: "./storage/test_blockchain3.db"
