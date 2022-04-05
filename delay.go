@@ -90,6 +90,6 @@ func (d *timeDelay) saveDelayToFile(round float64, average float64) {
 	defer file.Close()
 	//写入文件时，使用带缓存的 *Writer
 	write := bufio.NewWriter(file)
-	write.WriteString(strconv.FormatFloat(round, 'f', Conf.Basic.NumberPrecision, 64) + " " + strconv.FormatFloat(average, 'f', Conf.Basic.NumberPrecision, 64))
+	write.WriteString(strconv.FormatFloat(round, 'f', Conf.Basic.NumberPrecision, 64) + " " + strconv.FormatFloat(average, 'f', Conf.Basic.NumberPrecision, 64) + "\n")
 	write.Flush()
 }
