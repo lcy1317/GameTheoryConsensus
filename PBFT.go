@@ -74,7 +74,7 @@ func PBFTTcpListen(addr string) {
 	fmt.Printf(colorout.Green(consoleMessage))
 
 	defer listen.Close()
-
+	//TODO: 提前建立好和其他所有PBFT节点的连接。
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -110,11 +110,7 @@ func PBFTTcpListen(addr string) {
 				nextTcpMessage.PBFTStage = nextStage              // 切换stage
 				nextTcpMessage.GroupNodeId = getGroupNodeId(addr) // 根据地址确定当前发消息来的节点是那个，传下去消息的时候节点会变
 				for _, port := range portList {
-					TcpDial(nextTcpMessage.PBFTSerialize(), port)
-					//_, err := TcpConn[addr][port].Write(nextTcpMessage.PBFTSerialize())
-					//if err != nil {
-					//	log.Fatal(err)
-					//}
+					go TcpDial(nextTcpMessage.PBFTSerialize(), port)
 				}
 			}
 		}
@@ -171,12 +167,10 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
 			go delayCal.setDelay() // 计算延时
-			//delayCal.saveDelay(nodeID)
 			//p.BlockInfo.storeBlockInfo()
 			if Conf.PrintControl.Commit {
 				fmt.Println(colorout.Purple("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
 			}
-
 			return true
 		}
 		return false

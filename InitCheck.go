@@ -5,6 +5,7 @@ import (
 	"colorout"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 )
 
@@ -15,10 +16,17 @@ const InitBucketNameForBlockHash = "hashInfo"
 
 func InitCheck() {
 	ConfigCheck()           // 测试是否能够读取配置文件。
+	FileCreate()            // 创建存数据的文件
 	BoltDBConnectionCheck() // 测试BoltDB数据库是否存在，没有则创建。
 	BoltDBViewCheck()       // 测试BoltDB是否能正确读取
 	BoltDBBlockNumberInit() // 初始化boltDB的BlockNumber
 	PortListeningInit()     // 根据配置文件中的群主个数，从12000端口开端口监听
+}
+
+func FileCreate() {
+	filePath := "./delay/" + strconv.Itoa(Conf.Basic.GroupNumber) + "_" + strconv.Itoa(Conf.Basic.InitNodesNumberinGroup) + ".txt"
+	f, _ := os.Create(filePath)
+	f.Close()
 }
 
 func PortListeningInit() {

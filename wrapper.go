@@ -29,10 +29,9 @@ var testPBFTmessage = &PBFTMessage{
 }
 
 var transactions []*Transaction
+var a = 0
 
 func testSendTransactions() {
-	a := 0
-
 	for {
 		a++
 		// TODO: 解密和上报时候信息不一样哦！
@@ -61,28 +60,6 @@ func testSendTransactions() {
 		}
 	}
 }
-
-//原版的发小消息。每次重新建立链接，容易爆炸
-//func testSendTransactions() {
-//	a := 0
-//	for {
-//		a++
-//		// TODO: 解密和上报时候信息不一样哦！
-//		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond) // 设置延时
-//		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-//		testTx := new(Transaction)
-//		testTx.TXid = IntSerialize(a)
-//		testTx.Type = rand.Intn(2)
-//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
-//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
-//		testTx.getGeneralID()
-//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-//		testTx.Signature = []byte("Signature")
-//		testTx.PubKey = []byte("PubKey")
-//		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-//	}
-//}
 
 // 监听交易的一个函数
 func TcpListenWrapper() {
@@ -136,6 +113,7 @@ func SendingPBFTCRequest(duration int64) {
 	ticker := time.NewTicker(time.Millisecond * time.Duration(duration))
 	go func() {
 		for t := range ticker.C { // 每进入一次新建一个
+			delayCal.printDelay()
 			storeBlockInfo.check = false // 当前还没有存储过区块的信息（客户端收到任何一个Reply就存）
 			validNodes()                 // Refresh Stage Check
 			blockNumber++                // Add the BlockNumber
@@ -143,7 +121,7 @@ func SendingPBFTCRequest(duration int64) {
 			// 在BoltDB中存入我们的blockNumber
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
 			nowBlockNumber, nowStageNumber = getBlockNumandStageNum() // 获得全局的BlockNumber以及StageNumber，后面很多地方还没有重构。
-			fmt.Println(t, colorout.Purple("当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
+			fmt.Println(t, colorout.Purple("当前交易总数："+strconv.Itoa(a)+"当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
 			// 将生成的交易打包
 			testPBFTmessage.BlockInfo.Transactions = transactions
 			testPBFTmessage.BlockInfo.PrevBlockHash = nowHash
@@ -154,10 +132,8 @@ func SendingPBFTCRequest(duration int64) {
 			}
 			messageCheck.message[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
 			delayCal.initDelay()
-			delayStart = time.Now().UnixMicro()
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 			transactions = []*Transaction{} //清空当前消息池
-			delayCal.printDelay()
 		}
 	}()
 	select {}

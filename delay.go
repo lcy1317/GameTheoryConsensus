@@ -20,7 +20,6 @@ type timeDelay struct {
 }
 
 var delayCal *timeDelay
-var delayStart int64
 
 func DelayInit() {
 	delayCal = &timeDelay{
@@ -30,23 +29,6 @@ func DelayInit() {
 		allCnt:     0,
 		allTot:     0,
 	}
-}
-func (d *timeDelay) saveDelay(nodeID int) {
-	tmp := strconv.FormatInt(time.Now().UnixMicro()-delayStart, 10) + "\n"
-	filePath := "./delay/" + strconv.Itoa(nodeID) + ".txt"
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Println("文件打开失败", err)
-		f, _ := os.Create(filePath)
-		f.Close()
-		file, _ = os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
-	}
-	//及时关闭file句柄
-	defer file.Close()
-	//写入文件时，使用带缓存的 *Writer
-	write := bufio.NewWriter(file)
-	write.WriteString(tmp)
-	write.Flush()
 }
 func (d *timeDelay) initDelay() {
 	d.lock.Lock()
@@ -79,13 +61,7 @@ func (d *timeDelay) printDelay() {
 }
 func (d *timeDelay) saveDelayToFile(round float64, average float64) {
 	filePath := "./delay/" + strconv.Itoa(Conf.Basic.GroupNumber) + "_" + strconv.Itoa(Conf.Basic.InitNodesNumberinGroup) + ".txt"
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Println("文件打开失败", err)
-		f, _ := os.Create(filePath)
-		f.Close()
-		file, _ = os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
-	}
+	file, _ := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
 	//及时关闭file句柄
 	defer file.Close()
 	//写入文件时，使用带缓存的 *Writer
