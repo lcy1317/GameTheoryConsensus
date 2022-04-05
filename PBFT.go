@@ -170,7 +170,7 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			// 在这里收到足够的Commit，所以要在数据库中存下数据。
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
-			delayCal.setDelay() // 计算延时
+			go delayCal.setDelay() // 计算延时
 			//delayCal.saveDelay(nodeID)
 			//p.BlockInfo.storeBlockInfo()
 			if Conf.PrintControl.Commit {

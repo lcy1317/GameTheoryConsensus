@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"color"
 	"fmt"
 	"math"
 	"os"
@@ -31,8 +30,6 @@ func DelayInit() {
 		allCnt:     0,
 		allTot:     0,
 	}
-
-	color.Redln("日你妈", delayCal.allTot)
 }
 func (d *timeDelay) saveDelay(nodeID int) {
 	tmp := strconv.FormatInt(time.Now().UnixMicro()-delayStart, 10) + "\n"
@@ -75,6 +72,24 @@ func (d *timeDelay) printDelay() {
 	if math.IsNaN(tmp) == false {
 		d.allCnt = d.allCnt + 1
 		d.allTot = d.allTot + tmp
+		go d.saveDelayToFile(tmp, d.allTot/d.allCnt)
 	}
-	fmt.Println("Consensus Delay:", tmp, "ms", " Average Consensus Delay:", d.allTot/d.allCnt, "ms")
+
+	go fmt.Println("Consensus Delay:", tmp, "ms", " Average Consensus Delay:", d.allTot/d.allCnt, "ms")
+}
+func (d *timeDelay) saveDelayToFile(round float64, average float64) {
+	filePath := "./delay/" + strconv.Itoa(Conf.Basic.GroupNumber) + "_" + strconv.Itoa(Conf.Basic.InitNodesNumberinGroup) + ".txt"
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("文件打开失败", err)
+		f, _ := os.Create(filePath)
+		f.Close()
+		file, _ = os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	}
+	//及时关闭file句柄
+	defer file.Close()
+	//写入文件时，使用带缓存的 *Writer
+	write := bufio.NewWriter(file)
+	write.WriteString(strconv.FormatFloat(round, 'f', Conf.Basic.NumberPrecision, 64) + " " + strconv.FormatFloat(average, 'f', Conf.Basic.NumberPrecision, 64))
+	write.Flush()
 }
