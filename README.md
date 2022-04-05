@@ -6,6 +6,9 @@
 - 文件名统一大小写
 
 ## 更新日志
+
+- 22nd Commit Prepare: 在所有端口间建立稳定的TCP连接，保障PBFT消息发送不会导致崩掉，增大tps容量。
+
 - 21st Commit: 增加了延时计算，事实证明，第一要注意指针的使用，第二要注意NaN的判断，Debug一下午就这？
 
 - 20th Commit: 增加打印控制，下一步增加PBFT延时计算。
@@ -26,15 +29,15 @@
 
 - ```go
   type Transaction struct {
-  	TXid      []byte  // 储存该交易所引用的交易id
-  	Type      int     // 0 - 上报 1 - 数字解密
-  	GroupID   int     // 交易里应包含我是哪个群组的
-  	MyID      int     // 交易里应包含自己的群组内Id
-  	GeneralID int     // GeneralID我定义为MyID*100+GroupID，因为通常PBFT节点数量100-
-  	Hash      string  // 上报时候需要的字段 Hash(StageNumber + Number)
-  	Number    float64 // 解密时候的字段
-  	Signature []byte  // TODO:签名
-  	PubKey    []byte  // TODO:公钥
+      TXid      []byte  // 储存该交易所引用的交易id
+      Type      int     // 0 - 上报 1 - 数字解密
+      GroupID   int     // 交易里应包含我是哪个群组的
+      MyID      int     // 交易里应包含自己的群组内Id
+      GeneralID int     // GeneralID我定义为MyID*100+GroupID，因为通常PBFT节点数量100-
+      Hash      string  // 上报时候需要的字段 Hash(StageNumber + Number)
+      Number    float64 // 解密时候的字段
+      Signature []byte  // TODO:签名
+      PubKey    []byte  // TODO:公钥
   }
   ```
 
