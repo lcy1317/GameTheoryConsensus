@@ -11,7 +11,9 @@ type Config struct {
 	PrintControl *PrintControl `json:"print_control"`
 }
 type PrintControl struct {
-	Commit bool `json:"Commit"`
+	Commit           bool `json:"Commit"`
+	MessageID        bool `json:"MessageID"`
+	PBFTMessagePrint bool `json:"PBFTMessagePrint"`
 }
 type TcpInfoCfg struct {
 	PBFTBaseAddress   string `json:"PBFTBaseAddress"`
@@ -63,7 +65,9 @@ func configInitial() error {
 			ClientAddr:        viper.GetString("TcpInfo.ClientAddr"),
 		},
 		PrintControl: &PrintControl{
-			Commit: viper.GetBool("PrintControl.Commit"),
+			Commit:           viper.GetBool("PrintControl.Commit"),
+			MessageID:        viper.GetBool("PrintControl.MessageID"),
+			PBFTMessagePrint: viper.GetBool("PrintControl.PBFTMessagePrint"),
 		},
 	}
 	return nil

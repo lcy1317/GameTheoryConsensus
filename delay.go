@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"color"
 	"fmt"
+	"math"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -12,35 +16,65 @@ type timeDelay struct {
 	delayStart int64
 	delayTot   int64
 	delayCnt   int64
+	allTot     float64
+	allCnt     float64
 }
 
-var delayCal timeDelay
+var delayCal *timeDelay
+var delayStart int64
 
 func DelayInit() {
-	delayCal.lock.Lock()
-	defer delayCal.lock.Unlock()
-	delayCal.delayStart = time.Now().UnixMicro()
-	delayCal.delayCnt = 0
-	delayCal.delayTot = 0
+	delayCal = &timeDelay{
+		delayStart: time.Now().UnixMicro(),
+		delayCnt:   0,
+		delayTot:   0,
+		allCnt:     0,
+		allTot:     0,
+	}
+
+	color.Redln("日你妈", delayCal.allTot)
 }
-func (d timeDelay) initDelay() {
+func (d *timeDelay) saveDelay(nodeID int) {
+	tmp := strconv.FormatInt(time.Now().UnixMicro()-delayStart, 10) + "\n"
+	filePath := "./delay/" + strconv.Itoa(nodeID) + ".txt"
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("文件打开失败", err)
+		f, _ := os.Create(filePath)
+		f.Close()
+		file, _ = os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	}
+	//及时关闭file句柄
+	defer file.Close()
+	//写入文件时，使用带缓存的 *Writer
+	write := bufio.NewWriter(file)
+	write.WriteString(tmp)
+	write.Flush()
+}
+func (d *timeDelay) initDelay() {
 	d.lock.Lock()
 	d.delayStart = time.Now().UnixMicro()
 	d.lock.Unlock()
 }
 
-func (d timeDelay) setDelay() {
+func (d *timeDelay) setDelay() {
 	d.lock.Lock()
 	d.delayTot = d.delayTot + (time.Now().UnixMicro() - d.delayStart)
 	d.delayCnt = d.delayCnt + 1
-	color.Redln(d)
 	d.lock.Unlock()
 }
 
-func (d timeDelay) printDelay() {
+func (d *timeDelay) printDelay() {
+	d.lock.Lock()
+	defer d.lock.Unlock()
 	tot := float64(d.delayTot)
 	cnt := float64(d.delayCnt)
 	tmp := tot / cnt / 1000
-	color.Redln(d)
-	fmt.Println("Consensus Delay:", tmp, "ms")
+	d.delayCnt = 0
+	d.delayTot = 0
+	if math.IsNaN(tmp) == false {
+		d.allCnt = d.allCnt + 1
+		d.allTot = d.allTot + tmp
+	}
+	fmt.Println("Consensus Delay:", tmp, "ms", " Average Consensus Delay:", d.allTot/d.allCnt, "ms")
 }

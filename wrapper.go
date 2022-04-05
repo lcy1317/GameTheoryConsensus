@@ -42,7 +42,9 @@ func testSendTransactions() {
 			return
 		}
 		time.Sleep(time.Duration(Conf.ChainInfo.TransactionSpeed) * time.Microsecond) // 设置延时
-		fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+		if Conf.PrintControl.MessageID {
+			fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+		}
 		testTx := new(Transaction)
 		testTx.TXid = IntSerialize(a)
 		testTx.Type = rand.Intn(2)
@@ -147,8 +149,12 @@ func SendingPBFTCRequest(duration int64) {
 			testPBFTmessage.BlockInfo.PrevBlockHash = nowHash
 			//testPBFTmessage.BlockInfo.PrevBlockHash = getPrevBlockHash() // TODO: 一旦用这个函数直接爆炸，不知道为什么！！！！
 			testPBFTmessage.BlockInfo.newBlockInfo(blockNumber) // 更新打包的区块内的区块信息
-			fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + testPBFTmessage.printString()))
+			if Conf.PrintControl.PBFTMessagePrint {
+				fmt.Println(colorout.Yellow("准备发送PBFT消息，BlockNumber=" + testPBFTmessage.printString()))
+			}
 			messageCheck.message[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
+			delayCal.initDelay()
+			delayStart = time.Now().UnixMicro()
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 			transactions = []*Transaction{} //清空当前消息池
 			delayCal.printDelay()

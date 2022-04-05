@@ -1,5 +1,5 @@
 BasicCfg:
-  GroupNumber:  "22"
+  GroupNumber:  "4"
   StageBlockNumber: "12"
   GameTheoryStop: "6"
   RevealStop: "9"
@@ -15,4 +15,6 @@ TcpInfo:
   PBFTBasePortStart:  "13000"
   ClientAddr: "127.0.0.1:12999" # 虚拟的客户端正向监听交易地址
 PrintControl:
-  Commit: "true"
+  Commit: "false"
+  MessageID: "false"
+  PBFTMessagePrint: "false"
