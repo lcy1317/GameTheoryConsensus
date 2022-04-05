@@ -151,6 +151,7 @@ func SendingPBFTCRequest(duration int64) {
 			messageCheck.message[blockNumber] = NewPBFT(*testPBFTmessage, Conf.Basic.GroupNumber) // TODO: 发送打包好的messagePool
 			TcpDial(testPBFTmessage.PBFTSerialize(), "127.0.0.1:1300"+strconv.Itoa(testPBFTmessage.MajorNode))
 			transactions = []*Transaction{} //清空当前消息池
+			delayCal.printDelay()
 		}
 	}()
 	select {}

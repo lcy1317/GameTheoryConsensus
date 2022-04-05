@@ -14,6 +14,7 @@ var TcpConn map[string]map[string]net.Conn
 var ifPrint bool //控制是否输出监看信息
 
 func main() {
+	DelayInit()
 	ifPrint = false
 	rand.Seed(int64(time.Now().Nanosecond())) // 随机数种子
 	InitCheck()                               // 初始化检查

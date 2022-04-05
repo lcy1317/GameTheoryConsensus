@@ -123,6 +123,7 @@ func PBFTTcpListen(addr string) {
 
 // 收到request不论如何向下传递
 func (p PBFTMessage) handleRequest(nodeID int) bool {
+	delayCal.initDelay()
 	return true
 }
 
@@ -170,11 +171,12 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			// 在这里收到足够的Commit，所以要在数据库中存下数据。
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
-			p.BlockInfo.storeBlockInfo()
+			delayCal.setDelay() // 计算延时
+			// p.BlockInfo.storeBlockInfo()
 			if Conf.PrintControl.Commit {
 				fmt.Println(colorout.Purple("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
 			}
-			// 计算延时
+
 			return true
 		}
 		return false
