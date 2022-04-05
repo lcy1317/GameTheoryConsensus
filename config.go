@@ -14,6 +14,7 @@ type PrintControl struct {
 	Commit           bool `json:"Commit"`
 	MessageID        bool `json:"MessageID"`
 	PBFTMessagePrint bool `json:"PBFTMessagePrint"`
+	ReceiveTxMessage bool `json:"ReceiveTxMessage"`
 }
 type TcpInfoCfg struct {
 	PBFTBaseAddress   string `json:"PBFTBaseAddress"`
@@ -68,6 +69,7 @@ func configInitial() error {
 			Commit:           viper.GetBool("PrintControl.Commit"),
 			MessageID:        viper.GetBool("PrintControl.MessageID"),
 			PBFTMessagePrint: viper.GetBool("PrintControl.PBFTMessagePrint"),
+			ReceiveTxMessage: viper.GetBool("PrintControl.ReceiveTxMessage"),
 		},
 	}
 	return nil

@@ -1,5 +1,5 @@
 BasicCfg:
-  GroupNumber:  "7"
+  GroupNumber:  "22"
   StageBlockNumber: "12"
   GameTheoryStop: "6"
   RevealStop: "9"
@@ -8,7 +8,7 @@ BasicCfg:
 ChainInfo:
   DBFile: "./storage/test_blockchain3.db"
   NodeDBFile: "./storage/"
-  BlockSpeed: "2000" # 设定出块速度，单位ms
+  BlockSpeed: "1000" # 设定出块速度，单位ms
   TransactionSpeed: "10000" # 设定交易速度，单位us
 TcpInfo:
   PBFTBaseAddress: "127.0.0.1"
@@ -18,3 +18,4 @@ PrintControl:
   Commit: "false"
   MessageID: "false"
   PBFTMessagePrint: "false"
+  ReceiveTxMessage: "false"

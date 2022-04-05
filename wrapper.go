@@ -112,13 +112,13 @@ func TcpListenWrapper() {
 		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
 		txValidating, message := tx.validating()
 		if !txValidating {
-			if ifPrint {
+			if Conf.PrintControl.ReceiveTxMessage {
 				fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
 			}
 			continue
 		}
 		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
-		if ifPrint {
+		if Conf.PrintControl.ReceiveTxMessage {
 			fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
 		}
 	}
