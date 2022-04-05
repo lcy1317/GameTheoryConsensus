@@ -5,9 +5,13 @@ import (
 )
 
 type Config struct {
-	Basic     *BasicCfg     `json:"wallet"`
-	ChainInfo *ChainInfoCfg `json:"chain_info"`
-	TcpInfo   *TcpInfoCfg   `json:"tcp_info"`
+	Basic        *BasicCfg     `json:"wallet"`
+	ChainInfo    *ChainInfoCfg `json:"chain_info"`
+	TcpInfo      *TcpInfoCfg   `json:"tcp_info"`
+	PrintControl *PrintControl `json:"print_control"`
+}
+type PrintControl struct {
+	Commit bool `json:"Commit"`
 }
 type TcpInfoCfg struct {
 	PBFTBaseAddress   string `json:"PBFTBaseAddress"`
@@ -16,9 +20,10 @@ type TcpInfoCfg struct {
 }
 
 type ChainInfoCfg struct {
-	DBFile     string `json:"DBFile"`
-	NodeDBFile string `json:"NodeDBFile"`
-	BlockSpeed int    `json:"BlockSpeed"`
+	DBFile           string `json:"DBFile"`
+	NodeDBFile       string `json:"NodeDBFile"`
+	BlockSpeed       int    `json:"BlockSpeed"`
+	TransactionSpeed int    `json:"TransactionSpeed"`
 }
 
 type BasicCfg struct {
@@ -47,14 +52,18 @@ func configInitial() error {
 			NumberPrecision:        viper.GetInt("BasicCfg.NumberPrecision"),
 		},
 		ChainInfo: &ChainInfoCfg{
-			DBFile:     viper.GetString("ChainInfo.DBFile"),
-			NodeDBFile: viper.GetString("ChainInfo.NodeDBFile"),
-			BlockSpeed: viper.GetInt("ChainInfo.BlockSpeed"),
+			DBFile:           viper.GetString("ChainInfo.DBFile"),
+			NodeDBFile:       viper.GetString("ChainInfo.NodeDBFile"),
+			BlockSpeed:       viper.GetInt("ChainInfo.BlockSpeed"),
+			TransactionSpeed: viper.GetInt("ChainInfo.TransactionSpeed"),
 		},
 		TcpInfo: &TcpInfoCfg{
 			PBFTBaseAddress:   viper.GetString("TcpInfo.PBFTBaseAddress"),
 			PBFTBasePortStart: viper.GetInt("TcpInfo.PBFTBasePortStart"),
 			ClientAddr:        viper.GetString("TcpInfo.ClientAddr"),
+		},
+		PrintControl: &PrintControl{
+			Commit: viper.GetBool("PrintControl.Commit"),
 		},
 	}
 	return nil

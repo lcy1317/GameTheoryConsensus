@@ -7,6 +7,8 @@
 
 ## 更新日志
 
+- 20th Commit: 增加打印控制，下一步增加PBFT延时计算。
+
 - 19th Commit: 更新了每个阶段的内的交易验证，感觉还挺好看的
 
 - ![image-20220312155052223](https://luochengyu.oss-cn-beijing.aliyuncs.com/img/image-20220312155052223.png)

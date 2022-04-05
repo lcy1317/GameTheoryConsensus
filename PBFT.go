@@ -171,7 +171,10 @@ func (p PBFTMessage) handleCommit(nodeID int) bool {
 			BoltDBPutByte(dbFileName, []byte(strconv.Itoa(blockNumber)), []byte(strconv.Itoa(blockNumber)), p.PBFTSerialize())
 			// 在主链上存储区块信息。
 			p.BlockInfo.storeBlockInfo()
-			fmt.Println(colorout.Purple("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
+			if Conf.PrintControl.Commit {
+				fmt.Println(colorout.Purple("节点" + strconv.Itoa(nodeID) + "已完成Commit"))
+			}
+			// 计算延时
 			return true
 		}
 		return false
