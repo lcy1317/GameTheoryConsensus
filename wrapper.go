@@ -3,11 +3,8 @@ package main
 import (
 	"colorout"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"math"
 	"math/rand"
-	"net"
 	"strconv"
 	"time"
 )
@@ -30,18 +27,45 @@ var testPBFTmessage = &PBFTMessage{
 
 var transactions []*Transaction
 
-func testSendTransactions() {
-	a := 0
+//func testSendTransactions() {
+//	a := 0
+//
+//	for {
+//		a++
+//		// TODO: 解密和上报时候信息不一样哦！
+//		conn, err := net.Dial("tcp", Conf.TcpInfo.ClientAddr)
+//		if err != nil {
+//			log.Println("初始发送链接错误", err)
+//			return
+//		}
+//		time.Sleep(time.Duration(Conf.ChainInfo.TransactionSpeed) * time.Microsecond) // 设置延时
+//		if Conf.PrintControl.MessageID {
+//			fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
+//		}
+//		testTx := new(Transaction)
+//		testTx.TXid = IntSerialize(a)
+//		testTx.Type = rand.Intn(2)
+//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
+//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
+//		testTx.getGeneralID()
+//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
+//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
+//		testTx.Signature = []byte("Signature")
+//		testTx.PubKey = []byte("PubKey")
+//		_, err = conn.Write(testTx.TXSerialize())
+//		if err != nil {
+//			log.Fatal(err)
+//		}
+//	}
+//}
+var a = 0
 
+func sendTransactionsValidate() { // 合并交易产生和验证
+	txStartTime = time.Now().Unix()
 	for {
 		a++
 		// TODO: 解密和上报时候信息不一样哦！
-		conn, err := net.Dial("tcp", Conf.TcpInfo.ClientAddr)
-		if err != nil {
-			log.Println("初始发送链接错误", err)
-			return
-		}
-		time.Sleep(time.Duration(Conf.ChainInfo.TransactionSpeed) * time.Microsecond) // 设置延时
+		//time.Sleep(time.Duration(Conf.ChainInfo.TransactionSpeed) * time.Microsecond) // 设置延时
 		if Conf.PrintControl.MessageID {
 			fmt.Println(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
 		}
@@ -55,74 +79,60 @@ func testSendTransactions() {
 		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
 		testTx.Signature = []byte("Signature")
 		testTx.PubKey = []byte("PubKey")
-		_, err = conn.Write(testTx.TXSerialize())
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
 
-//原版的发小消息。每次重新建立链接，容易爆炸
-//func testSendTransactions() {
-//	a := 0
-//	for {
-//		a++
-//		// TODO: 解密和上报时候信息不一样哦！
-//		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond) // 设置延时
-//		fmt.Print(colorout.Yellow("正在发送消息编号"+strconv.Itoa(a)) + "   ")
-//		testTx := new(Transaction)
-//		testTx.TXid = IntSerialize(a)
-//		testTx.Type = rand.Intn(2)
-//		testTx.MyID = rand.Intn(Conf.Basic.InitNodesNumberinGroup)
-//		testTx.GroupID = rand.Intn(Conf.Basic.GroupNumber)
-//		testTx.getGeneralID()
-//		testTx.Number = float64(rand.Intn(math.MaxInt)) / float64(math.MaxInt) * 100
-//		testTx.Hash = testTx.getHash() //TODO：上报过程这个hash是自己算的，解密时候是公布数字
-//		testTx.Signature = []byte("Signature")
-//		testTx.PubKey = []byte("PubKey")
-//		TcpDial(testTx.TXSerialize(), Conf.TcpInfo.ClientAddr)
-//	}
-//}
-
-// 监听交易的一个函数
-func TcpListenWrapper() {
-	// 该端口监听交易。
-	// 创建一个TCP监听
-	var addr = Conf.TcpInfo.ClientAddr
-	listen, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	consoleMessage := "交易打包节点开启监听，地址：" + addr + "\n"
-	fmt.Printf(colorout.Green(consoleMessage))
-
-	defer listen.Close()
-
-	for {
-		conn, err := listen.Accept()
-		if err != nil {
-			log.Panic(err)
-		}
-		tcpMessage, err := ioutil.ReadAll(conn)
-		if err != nil {
-			log.Panic(err)
-		}
-		tx := new(Transaction)
-		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
-		txValidating, message := tx.validating()
+		txValidating, message := testTx.validating()
 		if !txValidating {
 			if Conf.PrintControl.ReceiveTxMessage {
-				fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
+				fmt.Println(colorout.Red(message+"  接受到非法事务消息:"), testTx.printString())
 			}
 			continue
 		}
-		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
+		transactions = append(transactions, testTx) // 将收到的消息放进全局变量transactions里
 		if Conf.PrintControl.ReceiveTxMessage {
-			fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
+			fmt.Println(colorout.Cyan(message+" 接受到事务消息:"), testTx.printString())
 		}
 	}
 }
+
+//// 监听交易的一个函数
+//func TcpListenWrapper() {
+//	// 该端口监听交易。
+//	// 创建一个TCP监听
+//	var addr = Conf.TcpInfo.ClientAddr
+//	listen, err := net.Listen("tcp", addr)
+//	if err != nil {
+//		log.Panic(err)
+//	}
+//
+//	consoleMessage := "交易打包节点开启监听，地址：" + addr + "\n"
+//	fmt.Printf(colorout.Green(consoleMessage))
+//
+//	defer listen.Close()
+//
+//	for {
+//		conn, err := listen.Accept()
+//		if err != nil {
+//			log.Panic(err)
+//		}
+//		tcpMessage, err := ioutil.ReadAll(conn)
+//		if err != nil {
+//			log.Panic(err)
+//		}
+//		tx := new(Transaction)
+//		*tx = TXDeserialize(tcpMessage) // 反序列化出来我们的事务。
+//		txValidating, message := tx.validating()
+//		if !txValidating {
+//			if Conf.PrintControl.ReceiveTxMessage {
+//				fmt.Println(colorout.Red(addr+message+"  接受到非法事务消息:"), tx.printString())
+//			}
+//			continue
+//		}
+//		transactions = append(transactions, tx) // 将收到的消息放进全局变量transactions里
+//		if Conf.PrintControl.ReceiveTxMessage {
+//			fmt.Println(colorout.Cyan(addr+message+" 接受到事务消息:"), tx.printString())
+//		}
+//	}
+//}
 func SendingPBFTCRequest(duration int64) {
 	messageCheck.message = make(map[int]PBFT) // PBFT.go For message validating
 	nodesGameStage = make(map[int]bool)       // stage.go For validation checking, avoiding several tx in one single stage
@@ -143,7 +153,7 @@ func SendingPBFTCRequest(duration int64) {
 			// 在BoltDB中存入我们的blockNumber
 			_ = BoltDBPut(Conf.ChainInfo.DBFile, InitBucketNameForBlockNumber, []byte(InitBucketNameForBlockNumber), IntSerialize(blockNumber))
 			nowBlockNumber, nowStageNumber = getBlockNumandStageNum() // 获得全局的BlockNumber以及StageNumber，后面很多地方还没有重构。
-			fmt.Println(t, colorout.Purple("当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
+			fmt.Println(t, colorout.Purple(" 当前交易数："+strconv.Itoa(a)+" 当前交易速度："+strconv.FormatFloat(float64(a)/float64(time.Now().Unix()-txStartTime), 'f', Conf.Basic.NumberPrecision, 64)+"tps 当前区块："+strconv.Itoa(nowBlockNumber)+" 当前阶段："+strconv.Itoa(nowStageNumber)+" 当前交易池交易数："+strconv.Itoa(len(transactions))))
 			// 将生成的交易打包
 			testPBFTmessage.BlockInfo.Transactions = transactions
 			testPBFTmessage.BlockInfo.PrevBlockHash = nowHash
