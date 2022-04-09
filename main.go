@@ -14,6 +14,7 @@ func main() {
 	DelayInit()
 	rand.Seed(int64(time.Now().Nanosecond())) // 随机数种子
 	InitCheck()                               // 初始化检查
+	time.Sleep(2 * time.Second)
 	go initAllTcp()
 	go TcpListenWrapper() // 开启协程，监听收交易的端口
 	time.Sleep(3 * time.Second)
